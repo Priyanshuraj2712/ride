@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
+import "../auth/Register.css";
 import { Link, useNavigate } from "react-router-dom";
 
 const Register = () => {
@@ -15,26 +16,76 @@ const Register = () => {
     vehicleModel: "",
   });
 
+  const [errors, setErrors] = useState({});
+
   const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
+    setForm({ ...form, [e.target.name]: e.target.value });
+
+    // Clear corresponding error instantly when typing
+    setErrors({ ...errors, [e.target.name]: "" });
   };
 
+  // -------------------------------
+  // VALIDATION
+  // -------------------------------
+  const validate = () => {
+    const newErrors = {};
+    const nameRegex = /^[A-Za-z ]+$/;
+    const phoneRegex = /^[0-9]{10}$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!nameRegex.test(form.name)) {
+      newErrors.name = "Name should contain only alphabets and spaces";
+    }
+
+    if (!emailRegex.test(form.email)) {
+      newErrors.email = "Enter a valid email address";
+    }
+
+    if (!phoneRegex.test(form.phone)) {
+      newErrors.phone = "Phone number must be exactly 10 digits";
+    }
+
+    if (form.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
+
+    if (form.role === "driver") {
+      if (!form.vehicleNumber.trim()) {
+        newErrors.vehicleNumber = "Vehicle number is required for drivers";
+      }
+      if (!form.vehicleModel.trim()) {
+        newErrors.vehicleModel = "Vehicle model is required for drivers";
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0; // return true if no errors
+  };
+
+  // -------------------------------
+  // SUBMIT
+  // -------------------------------
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!validate()) return;
+
     try {
-      // API endpoint example
-      const res = await axios.post("http://localhost:5001/api/auth/register", form);
+      let payload = { ...form };
 
-      alert("Registration successful! Please login.");
+      // Remove driver-only fields if passenger
+      if (form.role !== "driver") {
+        delete payload.vehicleNumber;
+        delete payload.vehicleModel;
+      }
+
+      await axios.post("http://localhost:5001/api/auth/register", payload);
+
       navigate("/login");
-
     } catch (err) {
       console.error(err);
-      alert("Registration failed!");
+      setErrors({ server: err.response?.data?.message || "Registration failed" });
     }
   };
 
@@ -44,67 +95,80 @@ const Register = () => {
 
       <form onSubmit={handleSubmit}>
 
-        {/* Name */}
+        {/* NAME */}
         <input
           type="text"
           name="name"
           placeholder="Full Name"
-          required
           onChange={handleChange}
+          required
         />
+        {errors.name && <span className="error-text">{errors.name}</span>}
 
-        {/* Email */}
+        {/* EMAIL */}
         <input
           type="email"
           name="email"
           placeholder="Email"
-          required
           onChange={handleChange}
+          required
         />
+        {errors.email && <span className="error-text">{errors.email}</span>}
 
-        {/* Phone */}
+        {/* PHONE */}
         <input
           type="text"
           name="phone"
           placeholder="Phone Number"
-          required
           onChange={handleChange}
+          required
         />
+        {errors.phone && <span className="error-text">{errors.phone}</span>}
 
-        {/* Password */}
+        {/* PASSWORD */}
         <input
           type="password"
           name="password"
           placeholder="Password"
-          required
           onChange={handleChange}
+          required
         />
+        {errors.password && <span className="error-text">{errors.password}</span>}
 
-        {/* Role */}
+        {/* ROLE */}
         <select name="role" onChange={handleChange}>
           <option value="passenger">Passenger</option>
           <option value="driver">Driver</option>
         </select>
 
-        {/* Show driver-only fields */}
+        {/* DRIVER ONLY FIELDS */}
         {form.role === "driver" && (
           <>
             <input
               type="text"
               name="vehicleNumber"
               placeholder="Vehicle Number"
-              required
               onChange={handleChange}
             />
+            {errors.vehicleNumber && (
+              <span className="error-text">{errors.vehicleNumber}</span>
+            )}
 
             <input
               type="text"
               name="vehicleModel"
               placeholder="Vehicle Model"
-              required
               onChange={handleChange}
             />
+            {errors.vehicleModel && (
+              <span className="error-text">{errors.vehicleModel}</span>
+            )}
           </>
+        )}
+
+        {/* SERVER ERROR */}
+        {errors.server && (
+          <p style={{ color: "red", marginTop: "10px" }}>{errors.server}</p>
         )}
 
         <button type="submit">Register</button>
@@ -112,7 +176,7 @@ const Register = () => {
 
       <p style={{ marginTop: "15px" }}>
         Already have an account?{" "}
-        <Link to="/login" style={{ color: "blue", textDecoration: "underline" }}>
+        <Link to="/login" style={{ color: "blue" }}>
           Login
         </Link>
       </p>

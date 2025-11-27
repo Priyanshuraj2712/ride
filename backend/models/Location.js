@@ -1,15 +1,12 @@
-const mongoose6 = require('mongoose');
+const mongoose = require('mongoose');
 
-
-const LocationSchema = new mongoose6.Schema({
-user: { type: mongoose6.Schema.Types.ObjectId, ref: 'User' },
-driver: { type: mongoose6.Schema.Types.ObjectId, ref: 'Driver' },
-coords: { type: { type: String, default: 'Point' }, coordinates: [Number] },
-timestamp: Date
+const LocationSchema = new mongoose.Schema({
+  user:   { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  driver: { type: mongoose.Schema.Types.ObjectId, ref: 'Driver' },
+  coords: { type: { type: String, default: 'Point' }, coordinates: [Number] },
+  timestamp: Date,
 });
-
 
 LocationSchema.index({ coords: '2dsphere' });
 
-
-module.exports = mongoose6.model('Location', LocationSchema);
+module.exports = mongoose.model('Location', LocationSchema);

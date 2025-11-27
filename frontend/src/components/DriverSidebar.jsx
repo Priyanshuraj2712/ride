@@ -1,10 +1,18 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";   // <-- Added
 import "./driverSidebar.css";
 
 const DriverSidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth(); // <-- Fix logout
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = (path) => location.pathname.startsWith(path);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   return (
     <div className="driver-sidebar">
@@ -31,8 +39,9 @@ const DriverSidebar = () => {
         </li>
       </ul>
 
-      <button className="driver-logout-btn">
-        <Link to="/login">Logout</Link>
+      {/* FIXED LOGOUT */}
+      <button className="driver-logout-btn" onClick={handleLogout}>
+        Logout
       </button>
     </div>
   );

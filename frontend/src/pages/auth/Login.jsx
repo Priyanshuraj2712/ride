@@ -10,33 +10,48 @@ const Login = () => {
   const [form, setForm] = useState({
     email: "",
     password: "",
-    role: "passenger"
   });
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
-  
-
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    const res = await axios.post("http://localhost:5001/api/auth/login", form);
+    try {
+      const { email, password } = form;
 
-    console.log("LOGIN RESPONSE:", res.data);
+      const res = await axios.post(
+        "http://localhost:5001/api/auth/login",
+        { email, password }     // ⬅️ send ONLY email + password
+      );
 
-    login(res.data.token, res.data.user.role);
+      console.log("LOGIN RESPONSE:", res.data);
 
-    if (res.data.role === "driver") navigate("/driver/dashboard");
-    else navigate("/passenger/dashboard");
+      // Store token + user
+      login(res.data.token, res.data.user);
 
-  } catch (err) {
-    console.error("LOGIN ERROR:", err);
-    alert("Login failed");
-  }
-};
+      // Also save them in localStorage
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+      localStorage.setItem("token", res.data.token);
 
+      // Driver specific
+      if (res.data.user.role === "driver" && res.data.user.driverId) {
+        localStorage.setItem("driverId", res.data.user.driverId);
+      }
+
+      // Redirect based on role
+      if (res.data.user.role === "driver") {
+        navigate("/driver/dashboard");
+      } else {
+        navigate("/passenger/dashboard");
+      }
+
+    } catch (err) {
+      console.error("LOGIN ERROR:", err);
+      alert(err.response?.data?.message || "Login failed");
+    }
+  };
 
   return (
     <div className="login-container">
@@ -44,35 +59,27 @@ const Login = () => {
 
       <form onSubmit={handleSubmit}>
         <input 
-          type="email" 
-          name="email" 
-          placeholder="Email" 
-          onChange={handleChange} 
-          required 
+          type="email"
+          name="email"
+          placeholder="Email"
+          onChange={handleChange}
+          required
         />
 
         <input 
-          type="password" 
-          name="password" 
-          placeholder="Password" 
-          onChange={handleChange} 
-          required 
+          type="password"
+          name="password"
+          placeholder="Password"
+          onChange={handleChange}
+          required
         />
-
-        <select name="role" onChange={handleChange}>
-          <option value="passenger">Passenger</option>
-          <option value="driver">Driver</option>
-        </select>
 
         <button type="submit">Login</button>
       </form>
 
-      {/* ⭐ Register Button BELOW */}
       <p style={{ marginTop: "15px" }}>
         Don’t have an account?{" "}
-        <Link to="/register" style={{ color: "blue", textDecoration: "underline" }}>
-          Register
-        </Link>
+        <Link to="/register">Register</Link>
       </p>
     </div>
   );

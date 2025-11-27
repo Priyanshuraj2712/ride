@@ -1,10 +1,8 @@
-const express4 = require('express');
-const router4 = express4.Router();
+const express = require('express');
+const router = express.Router();
 const { protect } = require('../middleware/auth');
 const { updateLocation } = require('../controllers/locationController');
 
+router.post('/driver', protect, updateLocation);
 
-router4.post('/driver', protect, updateLocation); // driver sends live location
-
-
-module.exports = router4;
+module.exports = router;

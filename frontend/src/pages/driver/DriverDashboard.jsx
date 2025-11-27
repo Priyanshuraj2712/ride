@@ -2,44 +2,99 @@ import React, { useEffect, useState } from "react";
 import DriverSidebar from "../../components/DriverSidebar";
 import socket from "../../services/socket";
 import axios from "../../services/api";
+import { useNavigate } from "react-router-dom";
 import "./driver.css";
 
 const DriverDashboard = () => {
   const [incomingRide, setIncomingRide] = useState(null);
+  const [online, setOnline] = useState(false);
 
-  // Demo stats (replace with backend later)
-  const stats = {
-    todayRides: 4,
-    todayEarnings: "₹850",
-    rating: 4.8,
-    onlineHours: "3h 20m",
-  };
+  const navigate = useNavigate();
 
-  // Listen for incoming ride requests from passengers
+  // -------------------------------------------
+  // LOAD DRIVER STATUS INITIALLY
+  // -------------------------------------------
   useEffect(() => {
-    socket.on("rideRequest", (ride) => {
-      console.log("Incoming ride:", ride);
+    const loadDriver = async () => {
+      try {
+        const token = localStorage.getItem("token");
+
+        const res = await axios.get("/api/driver/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        setOnline(res.data.driver.online || false);
+      } catch (err) {
+        console.error("Failed to load driver status:", err);
+      }
+    };
+
+    loadDriver();
+  }, []);
+
+  // -------------------------------------------
+  // SOCKET LISTENER - Driver receives rideRequest
+  // -------------------------------------------
+  useEffect(() => {
+    const handleRideRequest = (ride) => {
+      console.log("🚕 Incoming ride request:", ride);
       setIncomingRide(ride);
-    });
+    };
+
+    socket.on("rideRequest", handleRideRequest);
 
     return () => {
-      socket.off("rideRequest");
+      socket.off("rideRequest", handleRideRequest);
     };
   }, []);
 
-  // Accept Ride
-  const acceptRide = async () => {
+  // -------------------------------------------
+  // DRIVER GO ONLINE/OFFLINE
+  // -------------------------------------------
+  const toggleOnline = async () => {
     try {
-      await axios.post("/rides/accept", {
-        rideId: incomingRide._id,
-      });
+      const token = localStorage.getItem("token");
+
+      const res = await axios.post(
+        "/api/drivers/online",
+        { online: !online },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      setOnline(res.data.online);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update online status");
+    }
+  };
+
+  // -------------------------------------------
+  // DRIVER ACCEPTS RIDE
+  // -------------------------------------------
+  const acceptRide = async () => {
+    if (!incomingRide) return;
+
+    try {
+      const token = localStorage.getItem("token");
+
+      await axios.post(
+        "/api/rides/driver/respond",
+        {
+          rideId: incomingRide.rideId,
+          action: "accept",
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       socket.emit("driverAcceptedRide", {
-        rideId: incomingRide._id,
-        driverId: incomingRide.driver,
+        rideId: incomingRide.rideId,
       });
 
-      alert("Ride Accepted! Redirecting...");
+      alert("Ride accepted! Waiting for passenger...");
       setIncomingRide(null);
     } catch (err) {
       console.error(err);
@@ -47,13 +102,35 @@ const DriverDashboard = () => {
     }
   };
 
-  // Reject Ride
-  const rejectRide = () => {
-    socket.emit("driverRejectedRide", {
-      rideId: incomingRide._id,
-    });
+  // -------------------------------------------
+  // DRIVER REJECTS RIDE
+  // -------------------------------------------
+  const rejectRide = async () => {
+    if (!incomingRide) return;
 
-    setIncomingRide(null);
+    try {
+      const token = localStorage.getItem("token");
+
+      await axios.post(
+        "/api/rides/driver/respond",
+        {
+          rideId: incomingRide.rideId,
+          action: "reject",
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      socket.emit("driverRejectedRide", {
+        rideId: incomingRide.rideId,
+      });
+
+      setIncomingRide(null);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to reject ride");
+    }
   };
 
   return (
@@ -63,16 +140,23 @@ const DriverDashboard = () => {
       <div className="driver-main">
         <div className="driver-topbar">
           <h1>Driver Dashboard</h1>
-          <span className="driver-status-badge online">Online</span>
+          <span className={`driver-status-badge ${online ? "online" : "offline"}`}>
+            {online ? "Online" : "Offline"}
+          </span>
         </div>
 
-        {/* 🔴 POPUP FOR NEW RIDE REQUEST */}
+        {/* POPUP WHEN NEW RIDE ARRIVES */}
         {incomingRide && (
           <div className="ride-popup-overlay">
             <div className="ride-popup-card">
               <h2>New Ride Request</h2>
-              <p><strong>Pickup:</strong> {incomingRide.pickup.address}</p>
-              <p><strong>Drop:</strong> {incomingRide.destination.address}</p>
+
+              <p>
+                <strong>Pickup:</strong> {incomingRide?.pickup?.address}
+              </p>
+              <p>
+                <strong>Drop:</strong> {incomingRide?.destination?.address}
+              </p>
 
               <div className="ride-popup-actions">
                 <button className="driver-primary-btn" onClick={acceptRide}>
@@ -86,42 +170,43 @@ const DriverDashboard = () => {
           </div>
         )}
 
-        <div className="driver-stats-grid">
-          <div className="driver-card">
-            <h3>Today&apos;s Rides</h3>
-            <p className="driver-card-number">{stats.todayRides}</p>
-          </div>
-          <div className="driver-card">
-            <h3>Today&apos;s Earnings</h3>
-            <p className="driver-card-number">{stats.todayEarnings}</p>
-          </div>
-          <div className="driver-card">
-            <h3>Rating</h3>
-            <p className="driver-card-number">{stats.rating} ⭐</p>
-          </div>
-          <div className="driver-card">
-            <h3>Online Time</h3>
-            <p className="driver-card-number">{stats.onlineHours}</p>
-          </div>
-        </div>
-
+        {/* Quick Actions */}
         <div className="driver-section">
           <h2>Quick Actions</h2>
           <div className="driver-actions">
-            <button className="driver-primary-btn">Go Online</button>
-            <button className="driver-secondary-btn">View Ride Requests</button>
+            <button className="driver-primary-btn" onClick={toggleOnline}>
+              {online ? "Go Offline" : "Go Online"}
+            </button>
+
+            {/* FIXED BUTTON */}
+            <button
+              className="driver-secondary-btn"
+              onClick={() => navigate("/driver/requests")}
+            >
+              View Ride Requests
+            </button>
           </div>
         </div>
 
+        {/* Example Stats */}
         <div className="driver-section">
-          <h2>Upcoming Ride (Demo)</h2>
-          <div className="driver-upcoming-card">
-            <p><strong>Pickup:</strong> Gurgaon Sector 22</p>
-            <p><strong>Drop:</strong> Cyber City, DLF Phase III</p>
-            <p><strong>Fare:</strong> ₹320 (est.)</p>
-            <div className="driver-upcoming-actions">
-              <button className="driver-primary-btn">Start Ride</button>
-              <button className="driver-danger-btn">Cancel</button>
+          <h2>Driver Stats</h2>
+          <div className="driver-stats-grid">
+            <div className="driver-card">
+              <h3>Today's Rides</h3>
+              <p className="driver-card-number">4</p>
+            </div>
+            <div className="driver-card">
+              <h3>Earnings Today</h3>
+              <p className="driver-card-number">₹850</p>
+            </div>
+            <div className="driver-card">
+              <h3>Rating</h3>
+              <p className="driver-card-number">4.8 ⭐</p>
+            </div>
+            <div className="driver-card">
+              <h3>Online Time</h3>
+              <p className="driver-card-number">3h 20m</p>
             </div>
           </div>
         </div>
