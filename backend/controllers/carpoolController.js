@@ -13,9 +13,20 @@ exports.createCarpool = async (req, res, next) => {
 };
 
 exports.getAllCarpools = async (req, res) => {
-  const list = await Carpool.find().populate("createdBy", "name");
-  res.json({ carpools: list });
+  const userId = req.user._id;
+
+  const list = await Carpool.find()
+    .populate("createdBy", "name")
+    .lean();  // lean = plain objects (easier to add fields)
+
+  const updated = list.map(c => {
+    const joined = c.passengers?.some(p => String(p.user) === String(userId));
+    return { ...c, joined };
+  });
+
+  res.json({ carpools: updated });
 };
+
 
 exports.joinCarpool = async (req, res, next) => {
   try {

@@ -4,8 +4,7 @@ import { useParams } from "react-router-dom";
 import axios from "../../services/api";
 import socket from "../../services/socket";
 
-mapboxgl.accessToken =
-  "pk.eyJ1IjoicHJpeWFuc2h1MjJjc3UxMzYiLCJhIjoiY21paGRwbnkwMGczbTNkc2Z5N3hzNmZzYyJ9.14JOeApu8JQA2OVi1Yf4tA";
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
 const LiveTracking = () => {
   const { id } = useParams(); // rideId

@@ -172,11 +172,15 @@ const Carpool = () => {
             <p><strong>Seats Left:</strong> {c.seatsRemaining}</p>
             <p><strong>Price/Seat:</strong> ₹{c.pricePerSeat}</p>
 
-            {c.seatsRemaining > 0 ? (
-              <button onClick={() => joinCarpool(c._id)}>Join</button>
-            ) : (
-              <p style={{ color: "red" }}>Full</p>
-            )}
+            {c.joined ? (
+  <p style={{ color: "green", fontWeight: "bold" }}>✔ You have joined this carpool</p>
+) : (
+  c.seatsRemaining > 0 ? (
+    <button onClick={() => joinCarpool(c._id)}>Join</button>
+  ) : (
+    <p style={{ color: "red" }}>Full</p>
+  )
+)}
           </div>
         ))
       )}
