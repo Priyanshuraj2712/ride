@@ -10,6 +10,7 @@ const Login = () => {
   const [form, setForm] = useState({
     email: "",
     password: "",
+    role: "passenger"
   });
 
   const handleChange = (e) =>
@@ -19,28 +20,22 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const { email, password } = form;
-
-      const res = await axios.post(
-        "http://localhost:5001/api/auth/login",
-        { email, password }     // ⬅️ send ONLY email + password
-      );
+      const res = await axios.post("http://localhost:5001/api/auth/login", form);
 
       console.log("LOGIN RESPONSE:", res.data);
 
-      // Store token + user
+      // Store token + role using auth context
       login(res.data.token, res.data.user);
 
-      // Also save them in localStorage
+      // Store full user in localStorage
       localStorage.setItem("user", JSON.stringify(res.data.user));
-      localStorage.setItem("token", res.data.token);
 
-      // Driver specific
+      // Store driverId if exists
       if (res.data.user.role === "driver" && res.data.user.driverId) {
         localStorage.setItem("driverId", res.data.user.driverId);
       }
 
-      // Redirect based on role
+      // Navigate
       if (res.data.user.role === "driver") {
         navigate("/driver/dashboard");
       } else {
@@ -59,27 +54,39 @@ const Login = () => {
 
       <form onSubmit={handleSubmit}>
         <input 
-          type="email"
-          name="email"
-          placeholder="Email"
-          onChange={handleChange}
-          required
+          type="email" 
+          name="email" 
+          placeholder="Email" 
+          onChange={handleChange} 
+          required 
         />
 
         <input 
-          type="password"
-          name="password"
-          placeholder="Password"
-          onChange={handleChange}
-          required
+          type="password" 
+          name="password" 
+          placeholder="Password" 
+          onChange={handleChange} 
+          required 
         />
+
+        <select name="role" onChange={handleChange}>
+          <option value="passenger">Passenger</option>
+          <option value="driver">Driver</option>
+        </select>
 
         <button type="submit">Login</button>
       </form>
 
       <p style={{ marginTop: "15px" }}>
+<<<<<<< HEAD
         Don't have an account?{" "}
         <Link to="/register">Register</Link>
+=======
+        Don’t have an account?{" "}
+        <Link to="/register" style={{ color: "blue", textDecoration: "underline" }}>
+          Register
+        </Link>
+>>>>>>> ecef971cc3227485aa6dbb3742b6d8da6377acdd
       </p>
     </div>
   );

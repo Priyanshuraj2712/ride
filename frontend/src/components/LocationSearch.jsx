@@ -42,7 +42,7 @@ const LocationSearch = ({ onSelect, placeholder }) => {
         const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
           text
         )}.json?access_token=${MAPBOX_TOKEN}&autocomplete=true&limit=7&country=in`;
-
+        console.log(url);
         const res = await fetch(url);
         if (!res.ok) return;
 
