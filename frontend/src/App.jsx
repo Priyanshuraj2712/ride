@@ -18,125 +18,126 @@ import DriverProfile from "./pages/driver/DriverProfile";
 
 
 import PrivateRoute from "./routes/PrivateRoute";
+import Layout from "./components/Layout";
 
 const router = createBrowserRouter([
-  
-  { path: "/", element: <Navigate to="/login" replace /> },
-
-  { path: "/login", element: <Login /> },
-
   {
-    path: "/passenger/dashboard",
-    element: (
-      <PrivateRoute role="passenger">
-        <PassengerDashboard />
-      </PrivateRoute>
-    ),
-  },
+    path: "/",
+    element: <Layout />,
+    children: [
+      { index: true, element: <Navigate to="/login" replace /> },
+      { path: "login", element: <Login /> },
+      { path: "register", element: <Register /> },
 
-  {
-    path: "/passenger/book",
-    element: (
-      <PrivateRoute role="passenger">
-        <BookRide />
-      </PrivateRoute>
-    ),
-  },
-  {
-  path: "/driver/requests",
-  element: (
-    <PrivateRoute role="driver">
-      <RideRequests />
-    </PrivateRoute>
-  ),
-  },
-  {
-    path: "/driver/active-ride",
-    element: (
-      <PrivateRoute role="driver">
-        <ActiveRide />
-      </PrivateRoute>
-    ),
-  },
-  {
-    path: "/driver/earnings",
-    element: (
-      <PrivateRoute role="driver">
-        <Earnings />
-      </PrivateRoute>
-    ),
-  },
-  {
-    path: "/driver/reviews",
-    element: (
-      <PrivateRoute role="driver">
-        <DriverReviews />
-      </PrivateRoute>
-    ),
-  },
-  {
-    path: "/driver/profile",
-    element: (
-      <PrivateRoute role="driver">
-        <DriverProfile />
-      </PrivateRoute>
-    ),
-  },
+      {
+        path: "passenger/dashboard",
+        element: (
+          <PrivateRoute role="passenger">
+            <PassengerDashboard />
+          </PrivateRoute>
+        ),
+      },
 
+      {
+        path: "passenger/book",
+        element: (
+          <PrivateRoute role="passenger">
+            <BookRide />
+          </PrivateRoute>
+        ),
+      },
 
-  {
-    path: "/passenger/rides",
-    element: (
-      <PrivateRoute role="passenger">
-        <MyRides />
-      </PrivateRoute>
-    ),
+      {
+        path: "driver/requests",
+        element: (
+          <PrivateRoute role="driver">
+            <RideRequests />
+          </PrivateRoute>
+        ),
+      },
+
+      {
+        path: "driver/active-ride",
+        element: (
+          <PrivateRoute role="driver">
+            <ActiveRide />
+          </PrivateRoute>
+        ),
+      },
+
+      {
+        path: "driver/earnings",
+        element: (
+          <PrivateRoute role="driver">
+            <Earnings />
+          </PrivateRoute>
+        ),
+      },
+
+      {
+        path: "driver/reviews",
+        element: (
+          <PrivateRoute role="driver">
+            <DriverReviews />
+          </PrivateRoute>
+        ),
+      },
+
+      {
+        path: "driver/profile",
+        element: (
+          <PrivateRoute role="driver">
+            <DriverProfile />
+          </PrivateRoute>
+        ),
+      },
+
+      {
+        path: "passenger/rides",
+        element: (
+          <PrivateRoute role="passenger">
+            <MyRides />
+          </PrivateRoute>
+        ),
+      },
+
+      {
+        path: "passenger/carpool",
+        element: (
+          <PrivateRoute role="passenger">
+            <Carpool />
+          </PrivateRoute>
+        ),
+      },
+
+      {
+        path: "passenger/live",
+        element: (
+          <PrivateRoute role="passenger">
+            <LiveTracking />
+          </PrivateRoute>
+        ),
+      },
+
+      {
+        path: "passenger/reviews",
+        element: (
+          <PrivateRoute role="passenger">
+            <Reviews />
+          </PrivateRoute>
+        ),
+      },
+
+      {
+        path: "driver/dashboard",
+        element: (
+          <PrivateRoute role="driver">
+            <DriverDashboard />
+          </PrivateRoute>
+        ),
+      },
+    ],
   },
-
-  {
-    path: "/passenger/carpool",
-    element: (
-      <PrivateRoute role="passenger">
-        <Carpool />
-      </PrivateRoute>
-    ),
-  },
-
-  {
-    path: "/passenger/live",
-    element: (
-      <PrivateRoute role="passenger">
-        <LiveTracking />
-      </PrivateRoute>
-    ),
-  },
-
-
-
-  {
-  path: "/register",
-  element: <Register />
-  },
-
-
-  {
-    path: "/passenger/reviews",
-    element: (
-      <PrivateRoute role="passenger">
-        <Reviews />
-      </PrivateRoute>
-    ),
-  },
-
-  {
-    path: "/driver/dashboard",
-    element: (
-      <PrivateRoute role="driver">
-        <DriverDashboard />
-      </PrivateRoute>
-    ),
-  },
-
 ]);
 
 export default function App() {

@@ -78,7 +78,7 @@ const Login = () => {
       </form>
 
       <p style={{ marginTop: "15px" }}>
-        Don’t have an account?{" "}
+        Don't have an account?{" "}
         <Link to="/register">Register</Link>
       </p>
     </div>
