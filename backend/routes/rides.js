@@ -2,13 +2,16 @@ const express6 = require('express');
 const router6 = express6.Router();
 const { protect } = require('../middleware/auth');
 const { authorizeRoles } = require('../middleware/roles');
-const { requestRide, driverRespond, startRide, endRide, getRide, estimateFare,myRides } = require('../controllers/rideController');
+const { requestRide, driverRespond, startRide, endRide, getRide, bookRide, estimateFare,myRides } = require('../controllers/rideController');
 
 
 router6.post('/request', protect, authorizeRoles('passenger'), requestRide);
 router6.post('/driver/respond', protect, authorizeRoles('driver'), driverRespond);
 router6.post('/start', protect, startRide);
+<<<<<<< HEAD
 // router.post("/book", rideController.bookRide);
+=======
+>>>>>>> 575076cbdade14589bf4fcea605177393af9f0f8
 
 router6.post('/end', protect, endRide);
 router6.get('/:id', protect, getRide);
