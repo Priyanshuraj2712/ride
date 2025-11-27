@@ -78,15 +78,10 @@ const Login = () => {
       </form>
 
       <p style={{ marginTop: "15px" }}>
-<<<<<<< HEAD
-        Don't have an account?{" "}
-        <Link to="/register">Register</Link>
-=======
         Don’t have an account?{" "}
         <Link to="/register" style={{ color: "blue", textDecoration: "underline" }}>
           Register
         </Link>
->>>>>>> ecef971cc3227485aa6dbb3742b6d8da6377acdd
       </p>
     </div>
   );
