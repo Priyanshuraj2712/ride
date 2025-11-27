@@ -8,7 +8,7 @@ const { requestRide, driverRespond, startRide, endRide, getRide, estimateFare,my
 router6.post('/request', protect, authorizeRoles('passenger'), requestRide);
 router6.post('/driver/respond', protect, authorizeRoles('driver'), driverRespond);
 router6.post('/start', protect, startRide);
-router.post("/book", rideController.bookRide);
+// router.post("/book", rideController.bookRide);
 
 router6.post('/end', protect, endRide);
 router6.get('/:id', protect, getRide);
