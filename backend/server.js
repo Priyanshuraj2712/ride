@@ -9,6 +9,7 @@ const http = require("http");
 const { Server } = require("socket.io");
 const jwt = require("jsonwebtoken");
 const connectDB = require("./config/db");
+const { errorHandler } = require("./middleware/errorHandler");
 
 dotenv.config();
 
@@ -23,27 +24,41 @@ const userSocketMap = new Map();
 connectDB();
 
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
+app.options("*", cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 if (process.env.NODE_ENV !== "production") app.use(morgan("dev"));
 
 // Routes
-app.use("/api/auth", require("./routes/auth"));
-app.use("/api/drivers", require("./routes/driver"));
-app.use("/api/passengers", require("./routes/passenger"));
-app.use("/api/rides", require("./routes/rides"));
-app.use("/api/carpool", require("./routes/carpool"));
-app.use("/api/location", require("./routes/location"));
+app.use("/api/auth",      require("./routes/auth"));
+app.use("/api/drivers",   require("./routes/driver"));
+app.use("/api/passengers",require("./routes/passenger"));
+app.use("/api/rides",     require("./routes/rides"));
+app.use("/api/carpool",   require("./routes/carpool"));
+app.use("/api/location",  require("./routes/location"));
+app.use("/api/reviews",   require("./routes/review"));
+app.use("/api/driver",    require("./routes/driverActiveRide"));
+app.use("/api/driver",    require("./routes/driverProfile"));
+app.use("/api/driver",    require("./routes/driverEarnings"));
 
 // ----------------------------------------------------
 //              SOCKET.IO INITIALIZATION
 // ----------------------------------------------------
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: "http://localhost:5173",
     methods: ["GET", "POST"],
+    credentials: true,
+    transports: ["websocket", "polling"],
   },
+  allowEIO3: true,
 });
 
 // Socket Authentication (JWT optional)
@@ -71,35 +86,30 @@ io.on("connection", (socket) => {
     userSocketMap.set(socket.user.id.toString(), socket.id);
   }
 
-  // -----------------------------
-  //   RIDE REQUEST FROM USER
-  // -----------------------------
-  socket.on("newRideRequest", (rideData) => {
-    console.log("Broadcasting ride request...");
-    io.emit("rideRequest", rideData); // every driver receives popup
+  socket.on("SOSAlert", (data) => {
+    console.log("🚨 SOS ALERT RECEIVED (SOCKET):", data);
+    io.emit("SOSAlert", data);
   });
 
-  // -----------------------------
+  // RIDE REQUEST FROM USER
+  socket.on("newRideRequest", (rideData) => {
+    console.log("Broadcasting ride request...");
+    io.emit("rideRequest", rideData);
+  });
+
   // DRIVER ACCEPTS THE RIDE
-  // -----------------------------
   socket.on("driverAcceptedRide", (data) => {
     console.log("Driver Accepted:", data);
-
-    // Notify passenger & update ride
     io.emit("rideAccepted", data);
   });
 
-  // -----------------------------
   // DRIVER REJECTS THE RIDE
-  // -----------------------------
   socket.on("driverRejectedRide", (data) => {
     console.log("Driver Rejected:", data);
     io.emit("rideRejected", data);
   });
 
-  // -----------------------------
-  // JOIN RIDE ROOM
-  // -----------------------------
+  // JOIN / LEAVE RIDE ROOM
   socket.on("joinRideRoom", ({ rideId }) => {
     socket.join(`ride_${rideId}`);
   });
@@ -108,19 +118,14 @@ io.on("connection", (socket) => {
     socket.leave(`ride_${rideId}`);
   });
 
-  // -----------------------------
   // DRIVER LIVE LOCATION STREAM
-  // -----------------------------
   socket.on("driverLocation", (payload) => {
-    // { lat, lng, rideId, eta }
     if (payload.rideId) {
       io.to(`ride_${payload.rideId}`).emit("driverLocationUpdate", payload);
     }
   });
 
-  // -----------------------------
-  // DRIVER/PASSENGER DISCONNECT
-  // -----------------------------
+  // DISCONNECT
   socket.on("disconnect", () => {
     if (socket.user && socket.user.id) {
       userSocketMap.delete(socket.user.id.toString());
@@ -133,9 +138,12 @@ io.on("connection", (socket) => {
 app.set("io", io);
 app.set("userSocketMap", userSocketMap);
 
+// Error handler (must be after routes)
+app.use(errorHandler);
+
 // ----------------------------------------------------
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 server.listen(PORT, () => {
   console.log(`Ridezy backend running on port ${PORT}`);

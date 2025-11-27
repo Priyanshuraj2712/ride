@@ -1,17 +1,38 @@
-const express6 = require('express');
-const router6 = express6.Router();
-const { protect } = require('../middleware/auth');
-const { authorizeRoles } = require('../middleware/roles');
-const { requestRide, driverRespond, startRide, endRide, getRide, bookRide, estimateFare,myRides } = require('../controllers/rideController');
+const express = require("express");
+const router = express.Router();
 
+const { protect } = require("../middleware/auth");
+const { authorizeRoles } = require("../middleware/roles");
 
-router6.post('/request', protect, authorizeRoles('passenger'), requestRide);
-router6.post('/driver/respond', protect, authorizeRoles('driver'), driverRespond);
-router6.post('/start', protect, startRide);
+const {
+  requestRide,
+  driverRespond,
+  startRide,
+  endRide,
+  getRide,
+  estimateFare,
+  myRides,
+} = require("../controllers/rideController");
 
-router6.post('/end', protect, endRide);
-router6.get('/:id', protect, getRide);
-router6.post('/estimate', protect, estimateFare);
-router6.get('/my', protect, myRides);
+// Passenger creates/request ride
+router.post("/request", protect, authorizeRoles("passenger"), requestRide);
 
-module.exports = router6;
+// Driver accepts/rejects
+router.post("/driver/respond", protect, authorizeRoles("driver"), driverRespond);
+
+// OTP start
+router.post("/start", protect, authorizeRoles("driver"), startRide);
+
+// OTP end
+router.post("/end", protect, authorizeRoles("driver"), endRide);
+
+// Get a ride's full details
+router.get("/:id", protect, getRide);
+
+// Fare estimation
+router.post("/estimate", protect, estimateFare);
+
+// Passenger ride history
+router.get("/user/my", protect, myRides);
+
+module.exports = router;

@@ -1,11 +1,41 @@
+import { useEffect, useState } from "react";
 import DriverSidebar from "../../components/DriverSidebar";
+import axios from "../../services/api";
 import "./driver.css";
 
 const DriverReviews = () => {
-  const reviews = [
-    { id: 1, name: "Aman", rating: 5, comment: "Very polite and on time." },
-    { id: 2, name: "Riya", rating: 4, comment: "Smooth ride, clean car." },
-  ];
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadReviews = async () => {
+      try {
+        const token = localStorage.getItem("token");
+
+        // 1️⃣ Get driver profile → extract driverId
+        const profileRes = await axios.get("/api/driver/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const driverId = profileRes.data.driver._id;
+
+        // 2️⃣ Fetch all reviews for this driver
+        const revRes = await axios.get(`/api/reviews/${driverId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        setReviews(revRes.data.reviews || []);
+      } catch (err) {
+        console.error("Review Load Error:", err);
+      }
+
+      setLoading(false);
+    };
+
+    loadReviews();
+  }, []);
+
+  if (loading) return <p>Loading reviews...</p>;
 
   return (
     <div className="driver-layout">
@@ -15,12 +45,22 @@ const DriverReviews = () => {
           <h1>Reviews</h1>
         </div>
 
-        {reviews.map((r) => (
-          <div key={r.id} className="driver-upcoming-card" style={{ marginBottom: "10px" }}>
-            <p><strong>{r.name}</strong> — {r.rating} ⭐</p>
-            <p>{r.comment}</p>
-          </div>
-        ))}
+        {reviews.length === 0 ? (
+          <p>No reviews yet.</p>
+        ) : (
+          reviews.map((r) => (
+            <div
+              key={r._id}
+              className="driver-upcoming-card"
+              style={{ marginBottom: "10px" }}
+            >
+              <p>
+                <strong>{r.userId?.name || "Passenger"}</strong> — {r.rating} ⭐
+              </p>
+              <p>{r.comment || "No comment"}</p>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

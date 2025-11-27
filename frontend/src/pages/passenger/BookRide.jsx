@@ -1,122 +1,193 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "../../services/api";
 import socket from "../../services/socket";
+import LocationSearch from "../../components/LocationSearch";
+import MapPicker from "../../components/MapPicker";
 import { useNavigate } from "react-router-dom";
 
 const BookRide = () => {
   const navigate = useNavigate();
 
-  const [pickup, setPickup] = useState("");
-  const [destination, setDestination] = useState("");
   const [rideType, setRideType] = useState("premium");
   const [loading, setLoading] = useState(false);
-  const [rideId, setRideId] = useState(null);
+  const [estimatedFare, setEstimatedFare] = useState(null);
 
-  // Convert text locations to lat/lng
-  const geocode = async (address) => {
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-      address
-    )}`;
+  // Pickup
+  const [pickupAddress, setPickupAddress] = useState("");
+  const [pickupCoords, setPickupCoords] = useState(null);
+  const [openPickupMap, setOpenPickupMap] = useState(false);
 
-    const res = await fetch(url);
-    const data = await res.json();
+  // Destination
+  const [destAddress, setDestAddress] = useState("");
+  const [destCoords, setDestCoords] = useState(null);
+  const [openDestMap, setOpenDestMap] = useState(false);
 
-    if (data.length === 0) throw new Error("Location not found");
+  // 🚀 Register passenger socket so rideAssigned works
+  useEffect(() => {
+    const userId = localStorage.getItem("userId");
+    if (userId) socket.emit("registerPassenger", userId);
+  }, []);
 
-    return {
-      lat: parseFloat(data[0].lat),
-      lng: parseFloat(data[0].lon),
-    };
-  };
-
+  // SOCKET - Passenger listens for ride assignment
   useEffect(() => {
     socket.on("rideAssigned", (data) => {
       navigate(`/track/${data.rideId}`);
     });
 
-    return () => {
-      socket.off("rideAssigned");
-    };
+    return () => socket.off("rideAssigned");
   }, []);
 
+  // 💰 Automatically calculate fare using backend estimate API
+  useEffect(() => {
+    const estimateFare = async () => {
+      if (!pickupCoords || !destCoords) return;
+
+      try {
+        const token = localStorage.getItem("token");
+
+        const payload = {
+          pickup: {
+            coords: {
+              type: "Point",
+              coordinates: [pickupCoords.lng, pickupCoords.lat],
+            },
+          },
+          destination: {
+            coords: {
+              type: "Point",
+              coordinates: [destCoords.lng, destCoords.lat],
+            },
+          },
+          totalSeats: 1,
+        };
+
+        const res = await axios.post("/api/rides/estimate", payload, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        setEstimatedFare(res.data.fare);
+      } catch (err) {
+        console.error("Fare estimate failed", err);
+      }
+    };
+
+    estimateFare();
+  }, [pickupCoords, destCoords]);
+
   const handleBook = async () => {
-    if (!pickup || !destination)
-      return alert("Enter pickup & destination");
+    if (!pickupCoords || !destCoords)
+      return alert("Please select pickup and destination.");
+
+    if (!pickupAddress || !destAddress)
+      return alert("Select valid pickup and destination using search.");
 
     setLoading(true);
 
     try {
-      // 1️⃣ Convert addresses to coordinates
-      const pickupCoords = await geocode(pickup);
-      const destCoords = await geocode(destination);
+      const token = localStorage.getItem("token");
 
-      // 2️⃣ Create payload for backend
       const payload = {
         rideType,
         totalSeats: 1,
-        price: 200,
+        price: estimatedFare || 200, // fallback
         pickup: {
+          address: pickupAddress,
           coords: {
+            type: "Point",
             coordinates: [pickupCoords.lng, pickupCoords.lat],
           },
-          address: pickup,
         },
         destination: {
+          address: destAddress,
           coords: {
+            type: "Point",
             coordinates: [destCoords.lng, destCoords.lat],
           },
-          address: destination,
         },
       };
 
-      // 3️⃣ Call backend correct route: /api/rides/request
-      const token = localStorage.getItem("token");
-
-      const res = await axios.post("/api/rides/request", payload, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      await axios.post("/api/rides/request", payload, {
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      const createdRide = res.data.ride;
-      setRideId(createdRide._id);
-
-      // 4️⃣ Notify driver via socket
-      socket.emit("newRideRequest", createdRide);
-
-      alert("Ride requested. Waiting for driver...");
+      alert("Ride request sent! Waiting for driver...");
     } catch (err) {
       console.error(err);
-      alert("Failed to book ride: " + err.message);
+      alert("Booking failed: " + err.message);
     }
 
     setLoading(false);
   };
 
   return (
-    <div className="book-ride-container">
+    <div style={{ padding: "20px" }}>
       <h2>Book a Ride</h2>
 
-      <input
-        type="text"
-        placeholder="Pickup Location"
-        value={pickup}
-        onChange={(e) => setPickup(e.target.value)}
+      {/* Pickup Input */}
+      <LocationSearch
+        placeholder="Search Pickup Location"
+        onSelect={(loc) => {
+          setPickupAddress(loc.address);
+          setPickupCoords({ lat: loc.lat, lng: loc.lng });
+          setOpenPickupMap(true);
+        }}
       />
 
-      <input
-        type="text"
-        placeholder="Destination"
-        value={destination}
-        onChange={(e) => setDestination(e.target.value)}
+      {openPickupMap && pickupCoords && (
+        <MapPicker
+          initialPosition={{ lat: pickupCoords.lat, lng: pickupCoords.lng }}
+          onSelect={(coords) => {
+            setPickupCoords(coords);
+          }}
+        />
+      )}
+
+      <br />
+
+      {/* Destination */}
+      <LocationSearch
+        placeholder="Search Destination"
+        onSelect={(loc) => {
+          setDestAddress(loc.address);
+          setDestCoords({ lat: loc.lat, lng: loc.lng });
+          setOpenDestMap(true);
+        }}
       />
 
-      <select value={rideType} onChange={(e) => setRideType(e.target.value)}>
+      {openDestMap && destCoords && (
+        <MapPicker
+          initialPosition={{ lat: destCoords.lat, lng: destCoords.lng }}
+          onSelect={(coords) => setDestCoords(coords)}
+        />
+      )}
+
+      <br />
+
+      {/* Ride Type */}
+      <select
+        value={rideType}
+        onChange={(e) => setRideType(e.target.value)}
+        style={{ padding: "10px", width: "200px" }}
+      >
         <option value="premium">Premium</option>
         <option value="cab_sharing">Cab Sharing</option>
       </select>
 
-      <button onClick={handleBook} disabled={loading}>
+      <br />
+
+      {estimatedFare && (
+        <p style={{ marginTop: "10px", fontWeight: "bold" }}>
+          Estimated Fare: ₹{estimatedFare}
+        </p>
+      )}
+
+      <br />
+
+      <button
+        onClick={handleBook}
+        disabled={loading}
+        style={{ padding: "12px 20px" }}
+      >
         {loading ? "Booking..." : "Book Ride"}
       </button>
     </div>

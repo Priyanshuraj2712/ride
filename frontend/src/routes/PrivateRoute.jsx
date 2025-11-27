@@ -5,14 +5,14 @@ export default function PrivateRoute({ children, role }) {
   const { auth } = useAuth();
   const location = useLocation();
 
-  // Not logged in → go to login
+  // Not logged in
   if (!auth.token) {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  // Logged in but wrong role → redirect to correct dashboard
-  if (role && auth.role !== role) {
-    return <Navigate to={`/${auth.role}/dashboard`} replace />;
+  // Logged in but wrong role
+  if (role && auth.user?.role !== role) {
+    return <Navigate to={`/${auth.user.role}/dashboard`} replace />;
   }
 
   return children;

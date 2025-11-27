@@ -1,32 +1,152 @@
+import React, { useEffect, useState } from "react";
 import DriverSidebar from "../../components/DriverSidebar";
+import socket from "../../services/socket";
+import axios from "../../services/api";
 import "./driver.css";
 
 const RideRequests = () => {
-  // static demo list for now
-  const requests = [
-    { id: 1, pickup: "Sector 14", drop: "Cyber Hub", fare: "₹250" },
-    { id: 2, pickup: "MG Road", drop: "Udyog Vihar", fare: "₹180" },
-  ];
+  const [requests, setRequests] = useState([]);
+
+  // Load assigned pending rides for logged-in driver
+  const loadRequests = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      // Fetch driver profile → extract driverId
+      const profileRes = await axios.get("/api/driver/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const driverId = profileRes.data.driver?._id;
+
+      if (!driverId) {
+        setRequests([]);
+        return;
+      }
+
+      // Fetch ALL rides of this passenger/driver
+      const rideRes = await axios.get("/api/rides/user/my", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // Filter only rides where driver = logged-in driver AND status = pending
+      const pending = rideRes.data.rides.filter(
+        (ride) =>
+          (ride.driver === driverId || ride.driver?._id === driverId) &&
+          ride.status === "pending"
+      );
+
+      setRequests(pending);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to load ride requests.");
+    }
+  };
+
+  // Load on mount
+  useEffect(() => {
+    loadRequests();
+
+    // socket listener for live ride assignment
+    socket.on("rideRequest", () => {
+      console.log("Received socket ride request, refreshing...");
+      loadRequests(); // refresh list
+    });
+
+    return () => socket.off("rideRequest");
+  }, []);
+
+  // Accept Ride
+  const acceptRide = async (rideId) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      await axios.post(
+        "/api/rides/driver/respond",
+        { rideId, action: "accept" },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      alert("Ride accepted!");
+      loadRequests();
+
+      socket.emit("driverAcceptedRide", { rideId });
+    } catch (err) {
+      console.error(err);
+      alert("Failed to accept ride.");
+    }
+  };
+
+  // Reject Ride
+  const rejectRide = async (rideId) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      await axios.post(
+        "/api/rides/driver/respond",
+        { rideId, action: "reject" },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      alert("Ride rejected.");
+      loadRequests();
+
+      socket.emit("driverRejectedRide", { rideId });
+    } catch (err) {
+      console.error(err);
+      alert("Failed to reject ride.");
+    }
+  };
 
   return (
     <div className="driver-layout">
       <DriverSidebar />
+
       <div className="driver-main">
         <div className="driver-topbar">
           <h1>Ride Requests</h1>
         </div>
 
-        {requests.map((r) => (
-          <div key={r.id} className="driver-upcoming-card" style={{ marginBottom: "10px" }}>
-            <p><strong>Pickup:</strong> {r.pickup}</p>
-            <p><strong>Drop:</strong> {r.drop}</p>
-            <p><strong>Fare:</strong> {r.fare}</p>
-            <div className="driver-upcoming-actions">
-              <button className="driver-primary-btn">Accept</button>
-              <button className="driver-secondary-btn">Reject</button>
+        {requests.length === 0 ? (
+          <p>No new ride requests.</p>
+        ) : (
+          requests.map((r) => (
+            <div
+              key={r._id}
+              className="driver-upcoming-card"
+              style={{ marginBottom: "10px" }}
+            >
+              <p>
+                <strong>Pickup:</strong> {r.pickup?.address || "N/A"}
+              </p>
+              <p>
+                <strong>Drop:</strong> {r.destination?.address || "N/A"}
+              </p>
+              <p>
+                <strong>Fare:</strong> ₹{r.price}
+              </p>
+
+              <div className="driver-upcoming-actions">
+                <button
+                  className="driver-primary-btn"
+                  onClick={() => acceptRide(r._id)}
+                >
+                  Accept
+                </button>
+                <button
+                  className="driver-danger-btn"
+                  onClick={() => rejectRide(r._id)}
+                >
+                  Reject
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );

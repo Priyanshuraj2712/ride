@@ -1,3 +1,4 @@
+@import "mapbox-gl/dist/mapbox-gl.css";
 .login-container,
 .register-container {
   width: 350px;

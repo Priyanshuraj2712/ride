@@ -8,7 +8,6 @@ import BookRide from "./pages/passenger/BookRide";
 import MyRides from "./pages/passenger/MyRides";
 import Carpool from "./pages/passenger/Carpool";
 import LiveTracking from "./pages/passenger/LiveTracking";
-import SOS from "./pages/passenger/SOS";
 import Reviews from "./pages/passenger/Reviews";
 import Register from "./pages/auth/Register";
 import RideRequests from "./pages/driver/RideRequests";
@@ -112,14 +111,7 @@ const router = createBrowserRouter([
     ),
   },
 
-  {
-    path: "/passenger/sos",
-    element: (
-      <PrivateRoute role="passenger">
-        <SOS />
-      </PrivateRoute>
-    ),
-  },
+
 
   {
   path: "/register",

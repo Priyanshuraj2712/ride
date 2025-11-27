@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "mongodb": "^7.0.0"
+    "mapbox-gl": "^3.16.0",
+    "react-map-gl": "^8.1.0"
   }
 }

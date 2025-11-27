@@ -1,14 +1,11 @@
-const express3 = require('express');
-const router3 = express3.Router();
+const express = require('express');
+const router = express.Router();
 const { protect } = require('../middleware/auth');
-const { authorizeRoles } = require('../middleware/roles');
 
+router.use(protect);
 
-// passenger specific endpoints (profile edit, history)
-router3.use(protect);
+router.get('/profile', (req, res) => {
+  res.json({ user: req.user });
+});
 
-
-router3.get('/profile', (req, res) => { res.json({ user: req.user }); });
-
-
-module.exports = router3;
+module.exports = router;
