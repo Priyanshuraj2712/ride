@@ -18,13 +18,13 @@ export default function Header() {
       display: "flex",
       justifyContent: "space-between",
       alignItems: "center",
-      padding: "0.6rem 1rem",
-      background: "#0b67a3",
-      color: "#fff"
+      padding: "0.1rem 0.2rem",
+      background: "#faefee",
+      color: "#000"
     }}>
       <div style={{ fontWeight: 700, fontSize: 18 }}>
         <Link to={isAuthenticated ? (isDriver ? "/driver/dashboard" : "/passenger/dashboard") : "/"} style={{ color: "inherit", textDecoration: "none" }}>
-          Ridezy
+          <img src="../public/logo.png" alt="Ridezy Logo" style={{ height: 100, verticalAlign: "middle", marginRight: 8 }} />
         </Link>
       </div>
 
