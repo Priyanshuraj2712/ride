@@ -134,6 +134,9 @@ const BookRide = () => {
       />
 
       {openPickupMap && pickupCoords && (
+        
+         console.log("Rendering MapPicker..."),
+         
         <MapPicker
           initialPosition={{ lat: pickupCoords.lat, lng: pickupCoords.lng }}
           onSelect={(coords) => {

@@ -8,7 +8,8 @@ export const AuthProvider = ({ children }) => {
     user: null,
   });
 
-  // Restore token + user on page refresh
+  const [loading, setLoading] = useState(true);  // ⭐ IMPORTANT
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     const user = localStorage.getItem("user");
@@ -16,40 +17,31 @@ export const AuthProvider = ({ children }) => {
     if (token && user) {
       setAuth({ token, user: JSON.parse(user) });
     }
+
+    setLoading(false);  // ⭐ done restoring
   }, []);
 
-  // LOGIN FUNCTION
   const login = (token, user) => {
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(user));
+  setAuth(null); // force rerender first
 
-    setAuth({ token, user });
-  };
+  localStorage.setItem("token", token);
+  localStorage.setItem("user", JSON.stringify(user));
 
-  // LOGOUT FUNCTION
+  // force state update AFTER localStorage write
+  setAuth({
+    token,
+    user,
+  });
+};
+
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-
     setAuth({ token: null, user: null });
   };
 
-  // Utility helpers
-  const isAuthenticated = !!auth.token;
-  const isDriver = auth.user?.role === "driver";
-  const isPassenger = auth.user?.role === "passenger";
-
   return (
-    <AuthContext.Provider
-      value={{
-        auth,
-        login,
-        logout,
-        isAuthenticated,
-        isDriver,
-        isPassenger,
-      }}
-    >
+    <AuthContext.Provider value={{ auth, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
