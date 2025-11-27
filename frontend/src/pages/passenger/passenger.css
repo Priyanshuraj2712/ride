@@ -1,0 +1,9 @@
+.passenger-layout {
+  display: flex;
+}
+
+.content-area {
+  margin-left: 250px;
+  padding: 30px;
+  width: 100%;
+}

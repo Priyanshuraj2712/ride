@@ -1,21 +1,19 @@
-// ---------------- SERVER.JS ------------------
+// ---------------- FIXED SERVER.JS ------------------
 
-const express = require('express');
-const dotenv = require('dotenv');
-const morgan = require('morgan');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-const connectDB = require('./config/db');
-const http = require('http');              // REQUIRED
-const { Server } = require('socket.io');   // REQUIRED
-const jwt = require('jsonwebtoken');       // REQUIRED
+const express = require("express");
+const dotenv = require("dotenv");
+const morgan = require("morgan");
+const cors = require("cors");
+const bodyParser = require("body-parser");
+const http = require("http");
+const { Server } = require("socket.io");
+const jwt = require("jsonwebtoken");
+const connectDB = require("./config/db");
 
 dotenv.config();
 
 // Express App
 const app = express();
-
-// HTTP Server (Required for Socket.IO)
 const server = http.createServer(app);
 
 // Socket Map (userId → socketId)
@@ -28,27 +26,27 @@ connectDB();
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-if (process.env.NODE_ENV !== 'production') app.use(morgan('dev'));
+if (process.env.NODE_ENV !== "production") app.use(morgan("dev"));
 
 // Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/drivers', require('./routes/driver'));
-app.use('/api/passengers', require('./routes/passenger'));
-app.use('/api/rides', require('./routes/rides'));
-app.use('/api/carpool', require('./routes/carpool'));
-app.use('/api/location', require('./routes/location'));
+app.use("/api/auth", require("./routes/auth"));
+app.use("/api/drivers", require("./routes/driver"));
+app.use("/api/passengers", require("./routes/passenger"));
+app.use("/api/rides", require("./routes/rides"));
+app.use("/api/carpool", require("./routes/carpool"));
+app.use("/api/location", require("./routes/location"));
 
 // ----------------------------------------------------
-//      SOCKET.IO INITIALIZATION  (FIXED SECTION)
+//              SOCKET.IO INITIALIZATION
 // ----------------------------------------------------
 const io = new Server(server, {
   cors: {
     origin: "*",
-    methods: ["GET", "POST"]
-  }
+    methods: ["GET", "POST"],
+  },
 });
 
-// Socket Authentication
+// Socket Authentication (JWT optional)
 io.use((socket, next) => {
   try {
     const token = socket.handshake.auth?.token;
@@ -56,41 +54,74 @@ io.use((socket, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       socket.user = { id: decoded.id, role: decoded.role };
     }
-    return next();
+    next();
   } catch (err) {
-    return next();
+    next();
   }
 });
 
-// Socket Events
-io.on('connection', (socket) => {
-
+// ----------------------------------------------------
+//             ALL SOCKET EVENTS (FIXED)
+// ----------------------------------------------------
+io.on("connection", (socket) => {
   console.log("Socket connected:", socket.id);
 
-  // Save socket for user
+  // Map user to socket
   if (socket.user && socket.user.id) {
     userSocketMap.set(socket.user.id.toString(), socket.id);
   }
 
-  // Join ride room
-  socket.on('joinRideRoom', ({ rideId }) => {
+  // -----------------------------
+  //   RIDE REQUEST FROM USER
+  // -----------------------------
+  socket.on("newRideRequest", (rideData) => {
+    console.log("Broadcasting ride request...");
+    io.emit("rideRequest", rideData); // every driver receives popup
+  });
+
+  // -----------------------------
+  // DRIVER ACCEPTS THE RIDE
+  // -----------------------------
+  socket.on("driverAcceptedRide", (data) => {
+    console.log("Driver Accepted:", data);
+
+    // Notify passenger & update ride
+    io.emit("rideAccepted", data);
+  });
+
+  // -----------------------------
+  // DRIVER REJECTS THE RIDE
+  // -----------------------------
+  socket.on("driverRejectedRide", (data) => {
+    console.log("Driver Rejected:", data);
+    io.emit("rideRejected", data);
+  });
+
+  // -----------------------------
+  // JOIN RIDE ROOM
+  // -----------------------------
+  socket.on("joinRideRoom", ({ rideId }) => {
     socket.join(`ride_${rideId}`);
   });
 
-  socket.on('leaveRideRoom', ({ rideId }) => {
+  socket.on("leaveRideRoom", ({ rideId }) => {
     socket.leave(`ride_${rideId}`);
   });
 
-  // Driver live location updates
-  socket.on('driverLocation', (payload) => {
-    // payload = { lat, lng, rideId, eta }
+  // -----------------------------
+  // DRIVER LIVE LOCATION STREAM
+  // -----------------------------
+  socket.on("driverLocation", (payload) => {
+    // { lat, lng, rideId, eta }
     if (payload.rideId) {
-      io.to(`ride_${payload.rideId}`).emit('driverLocationUpdate', payload);
+      io.to(`ride_${payload.rideId}`).emit("driverLocationUpdate", payload);
     }
   });
 
-  // Cleanup on disconnect
-  socket.on('disconnect', () => {
+  // -----------------------------
+  // DRIVER/PASSENGER DISCONNECT
+  // -----------------------------
+  socket.on("disconnect", () => {
     if (socket.user && socket.user.id) {
       userSocketMap.delete(socket.user.id.toString());
     }
@@ -98,14 +129,14 @@ io.on('connection', (socket) => {
   });
 });
 
-// Expose Socket.IO globally
-app.set('io', io);
-app.set('userSocketMap', userSocketMap);
+// Expose globally
+app.set("io", io);
+app.set("userSocketMap", userSocketMap);
 
 // ----------------------------------------------------
 
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
-  console.log(`Ridezy backend (with Socket.IO) running on port ${PORT}`);
+  console.log(`Ridezy backend running on port ${PORT}`);
 });

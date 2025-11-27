@@ -10,21 +10,48 @@ return jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { exp
 
 
 exports.register = async (req, res, next) => {
-try {
-const { name, email, phone, password, role } = req.body;
-if (!name || !email || !phone || !password) return res.status(400).json({ message: 'Missing fields' });
-const user = await User.create({ name, email, phone, password, role });
-// if driver role, create driver record too
-if (role === 'driver') {
-const driver = await Driver.create({ user: user._id });
-user.driver = driver._id;
-}
-const token = signToken(user);
-res.status(201).json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
-} catch (err) {
-next(err);
-}
+  try {
+    const { name, email, phone, password, role, vehicleNumber, vehicleModel } = req.body;
+
+    if (!name || !email || !phone || !password || !role) 
+      return res.status(400).json({ message: "Missing fields" });
+
+    // FIX: normalize role
+    let finalRole = role === "driver" ? "driver" : "passenger";
+
+    // create user
+    const user = await User.create({
+      name,
+      email,
+      phone,
+      password,
+      role: finalRole,
+      vehicleNumber: finalRole === "driver" ? vehicleNumber : null,
+      vehicleModel: finalRole === "driver" ? vehicleModel : null,
+    });
+
+    // if driver, create driver record too
+    if (finalRole === "driver") {
+      const driver = await Driver.create({ user: user._id });
+      user.driver = driver._id;
+    }
+
+    const token = signToken(user);
+
+    res.status(201).json({
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: finalRole,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
 };
+
 
 
 exports.login = async (req, res, next) => {

@@ -5,6 +5,8 @@ const DriverSchema = new mongoose2.Schema({
 user: { type: mongoose2.Schema.Types.ObjectId, ref: 'User', required: true },
 vehicle: { type: mongoose2.Schema.Types.ObjectId, ref: 'Vehicle' },
 online: { type: Boolean, default: false },
+vehicleNumber: { type: String },
+vehicleModel: { type: String },
 liveLocation: {
 type: { type: String, enum: ['Point'], default: 'Point' },
 coordinates: { type: [Number], default: [0,0] }, // [lng, lat]

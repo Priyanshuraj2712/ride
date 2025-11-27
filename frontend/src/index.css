@@ -1,0 +1,35 @@
+.login-container,
+.register-container {
+  width: 350px;
+  margin: 80px auto;
+  padding: 25px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.login-container h2,
+.register-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+input,
+select,
+button {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 12px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+button {
+  background: #111;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #333;
+}
