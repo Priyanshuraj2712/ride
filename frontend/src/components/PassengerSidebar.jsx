@@ -7,7 +7,7 @@ const PassengerSidebar = () => {
       <h2 className="logo">Ridezy</h2>
 
       <ul className="menu">
-        <li><Link to="/passenger/book">🚕 Book Ride</Link></li>
+        <li><Link to="/passenger/request">🚕 Book Ride</Link></li>
         <li><Link to="/passenger/rides">📄 My Rides</Link></li>
         <li><Link to="/passenger/carpool">👥 Carpool</Link></li>
         <li><Link to="/passenger/live">📍 Live Tracking</Link></li>
