@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 
 export default function Footer() {
   const { isAuthenticated, auth } = useAuth();
+  console.log("[Footer] Auth State:", { isAuthenticated, user: auth.user });
 
   return (
     <footer style={{

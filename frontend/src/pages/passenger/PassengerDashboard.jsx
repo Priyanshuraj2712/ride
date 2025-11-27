@@ -8,7 +8,7 @@ const PassengerDashboard = () => {
   const { auth } = useAuth();
 
   // Protect route
-  if (!auth.token || auth.user.role !== "passenger") {
+  if (!auth.token || auth.user.role != "passenger") {
     return <Navigate to="/login" />;
   }
 

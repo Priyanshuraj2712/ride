@@ -6,6 +6,8 @@ export default function Header() {
   const { isAuthenticated, isDriver, isPassenger, auth, logout } = useAuth();
   const navigate = useNavigate();
 
+  console.log("[Header] Auth State:", { isAuthenticated, isDriver, isPassenger, user: auth.user });
+
   const handleLogout = () => {
     logout();
     navigate("/login");

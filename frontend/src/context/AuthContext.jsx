@@ -40,8 +40,13 @@ export const AuthProvider = ({ children }) => {
     setAuth({ token: null, user: null });
   };
 
+  // Compute these values based on current auth state
+  const isAuthenticated = !!auth.token;
+  const isDriver = auth.user?.role === "driver";
+  const isPassenger = auth.user?.role === "passenger";
+
   return (
-    <AuthContext.Provider value={{ auth, login, logout, loading }}>
+    <AuthContext.Provider value={{ auth, login, logout, loading, isAuthenticated, isDriver, isPassenger }}>
       {children}
     </AuthContext.Provider>
   );
