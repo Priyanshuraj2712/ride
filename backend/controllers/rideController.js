@@ -58,6 +58,10 @@ exports.requestRide = async (req, res, next) => {
   try {
     const { rideType, pickup, destination, totalSeats = 1, price } = req.body;
 
+    if (!pickup?.coords || !destination?.coords) {
+      return res.status(400).json({ message: 'pickup & destination coords required' });
+    }
+
     const ride = await Ride.create({
       rideType,
       pickup,
@@ -69,9 +73,13 @@ exports.requestRide = async (req, res, next) => {
       status: "pending",
     });
 
-    // Find nearest online driver
-    const lng = pickup.coords.coordinates[0];
-    const lat = pickup.coords.coordinates[1];
+    // Find nearest online driver (support both GeoJSON 'coordinates' and plain {lat,lng})
+    const lng = pickup.coords.lng ?? pickup.coords.coordinates?.[0];
+    const lat = pickup.coords.lat ?? pickup.coords.coordinates?.[1];
+
+    if (lng == null || lat == null) {
+      return res.status(400).json({ message: 'Invalid pickup coordinates' });
+    }
 
     const nearest = await DriverModel.find({
       online: true,
@@ -135,12 +143,68 @@ exports.driverRespond = async (req, res, next) => {
       return res.json({ success: true, ride });
     }
 
-    // REJECT
+    // REJECT - clear current driver and attempt to reassign to next nearest
+    // Keep ride pending so it can be re-broadcast
+    const rejectingDriverId = driver._id;
+
     ride.status = "pending";
     ride.driver = null;
     await ride.save();
 
+    try {
+      // attempt to find next nearest driver (exclude rejecting driver)
+      const lng = ride.pickup.coords.lng ?? ride.pickup.coords.coordinates?.[0];
+      const lat = ride.pickup.coords.lat ?? ride.pickup.coords.coordinates?.[1];
+
+      if (lng != null && lat != null) {
+        const nearest = await DriverModel.find({
+          _id: { $ne: rejectingDriverId },
+          online: true,
+          seatsAvailable: { $gte: ride.totalSeats },
+          liveLocation: {
+            $nearSphere: {
+              $geometry: { type: "Point", coordinates: [lng, lat] },
+              $maxDistance: 20000,
+            },
+          },
+        }).limit(1);
+
+        if (nearest.length) {
+          ride.driver = nearest[0]._id;
+          await ride.save();
+
+          const driverSocketId = userSocketMap.get(nearest[0].user.toString());
+          if (driverSocketId) {
+            io.to(driverSocketId).emit("rideRequest", {
+              rideId: ride._id,
+              pickup: ride.pickup,
+              destination: ride.destination,
+            });
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Reassign after reject failed", err.message || err);
+    }
+
     return res.json({ success: true, message: "Rejected" });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Driver: get rides assigned to logged-in driver
+exports.driverMyRides = async (req, res, next) => {
+  try {
+    const driver = await DriverModel.findOne({ user: req.user._id });
+    if (!driver) return res.status(404).json({ message: "Driver not found" });
+
+    const rides = await Ride.find({ driver: driver._id })
+      .sort({ "timestamps.requestedAt": -1 })
+      .populate("createdBy", "name email")
+      .populate("passengers.user", "name");
+
+    res.json({ rides });
   } catch (err) {
     next(err);
   }

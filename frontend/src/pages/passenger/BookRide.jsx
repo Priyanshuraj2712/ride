@@ -30,11 +30,11 @@ const BookRide = () => {
 
   // SOCKET - Passenger listens for ride assignment
   useEffect(() => {
-    socket.on("rideAssigned", (data) => {
-      navigate(`/track/${data.rideId}`);
-    });
+    const handleRideAssigned = (data) => navigate(`/track/${data.rideId}`);
 
-    return () => socket.off("rideAssigned");
+    socket.on("rideAssigned", handleRideAssigned);
+
+    return () => socket.off("rideAssigned", handleRideAssigned);
   }, []);
 
   // 💰 Automatically calculate fare using backend estimate API
@@ -134,9 +134,6 @@ const BookRide = () => {
       />
 
       {openPickupMap && pickupCoords && (
-        
-         console.log("Rendering MapPicker..."),
-         
         <MapPicker
           initialPosition={{ lat: pickupCoords.lat, lng: pickupCoords.lng }}
           onSelect={(coords) => {

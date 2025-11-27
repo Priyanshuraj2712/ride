@@ -12,31 +12,12 @@ const RideRequests = () => {
     try {
       const token = localStorage.getItem("token");
 
-      // Fetch driver profile → extract driverId
-      const profileRes = await axios.get("/api/driver/me", {
+      // Fetch rides assigned to this logged-in driver
+      const rideRes = await axios.get("/api/rides/driver/my", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      const driverId = profileRes.data.driver?._id;
-
-      if (!driverId) {
-        setRequests([]);
-        return;
-      }
-
-      // Fetch ALL rides of this passenger/driver
-      const rideRes = await axios.get("/api/rides/user/my", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      // Filter only rides where driver = logged-in driver AND status = pending
-      const pending = rideRes.data.rides.filter(
-        (ride) =>
-          (ride.driver === driverId || ride.driver?._id === driverId) &&
-          ride.status === "pending"
-      );
-
-      setRequests(pending);
+      setRequests(rideRes.data.rides || []);
     } catch (err) {
       console.error(err);
       alert("Failed to load ride requests.");
@@ -48,12 +29,14 @@ const RideRequests = () => {
     loadRequests();
 
     // socket listener for live ride assignment
-    socket.on("rideRequest", () => {
+    const handleRideRequestSocket = () => {
       console.log("Received socket ride request, refreshing...");
       loadRequests(); // refresh list
-    });
+    };
 
-    return () => socket.off("rideRequest");
+    socket.on("rideRequest", handleRideRequestSocket);
+
+    return () => socket.off("rideRequest", handleRideRequestSocket);
   }, []);
 
   // Accept Ride

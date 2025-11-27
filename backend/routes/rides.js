@@ -12,6 +12,7 @@ const {
   getRide,
   estimateFare,
   myRides,
+  driverMyRides,
 } = require("../controllers/rideController");
 
 // Passenger creates/request ride
@@ -34,5 +35,8 @@ router.post("/estimate", protect, estimateFare);
 
 // Passenger ride history
 router.get("/user/my", protect, myRides);
+
+// Driver: rides assigned to logged-in driver
+router.get("/driver/my", protect, authorizeRoles("driver"), driverMyRides);
 
 module.exports = router;
