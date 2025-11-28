@@ -23,11 +23,31 @@ const LiveTracking = () => {
     const fetchRide = async () => {
       const token = localStorage.getItem("token");
 
-      const res = await axios.get(`/api/rides/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      try {
+        if (id) {
+          const res = await axios.get(`/api/rides/${id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setRide(res.data.ride);
+          return;
+        }
 
-      setRide(res.data.ride);
+        // No id param: try to find passenger's current accepted/ongoing ride
+        const res = await axios.get(`/api/rides/user/my`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const rides = res.data.rides || [];
+        const active = rides.find((r) => r.status === "accepted" || r.status === "ongoing");
+        if (active) {
+          setRide(active);
+        } else {
+          setRide(null);
+        }
+      } catch (err) {
+        console.error("Failed to load ride for tracking:", err);
+        setRide(null);
+      }
     };
 
     fetchRide();
@@ -98,7 +118,15 @@ const LiveTracking = () => {
     };
   }, []);
 
-  if (!ride) return <p>Loading ride details...</p>;
+  if (ride === undefined) return <p>Loading ride details...</p>;
+  if (ride === null)
+    return (
+      <div style={{ padding: 10 }}>
+        <h2>Live Tracking</h2>
+        <p>No active ride found to track.</p>
+        <p>Open <a href="/passenger/rides">My Rides</a> and click "Track Ride" on a current ride.</p>
+      </div>
+    );
 
   return (
     <div style={{ padding: "10px" }}>
