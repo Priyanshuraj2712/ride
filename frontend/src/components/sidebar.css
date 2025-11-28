@@ -1,10 +1,15 @@
 .sidebar {
   width: 230px;
-  height: 100vh;
   background: #111;
   color: white;
   position: fixed;
   padding: 25px 15px;
+  left: 0;
+  top: var(--header-height); /* sits below header */
+  bottom: var(--footer-height); /* leaves space for footer */
+  z-index: 100;
+  transition: all 0.3s ease;
+  overflow-y: auto;
 }
 
 .logo {
@@ -17,18 +22,159 @@
 .menu {
   list-style: none;
   padding: 0;
+  margin: 0;
 }
 
 .menu li {
   margin: 15px 0;
 }
 
-.menu li a {
+.menu li a,
+.menu li button {
   color: white;
   text-decoration: none;
   font-size: 17px;
+  display: block;
+  padding: 10px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
 }
 
 .menu li a:hover {
   color: #00ff88;
+  background-color: rgba(0, 255, 136, 0.1);
+  padding-left: 20px;
+}
+
+/* Logout Button Styling */
+.logout-btn {
+  width: 100%;
+  padding: 12px;
+  margin-top: 20px;
+  background: #ff4444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+  background: #cc0000;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 68, 68, 0.3);
+}
+
+/* Hamburger Menu Icon */
+.sidebar-hamburger {
+  display: none;
+  flex-direction: column;
+  cursor: pointer;
+  gap: 5px;
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  z-index: 101;
+}
+
+.sidebar-hamburger span {
+  width: 25px;
+  height: 3px;
+  background: #3e4749;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.sidebar-hamburger.active span:nth-child(1) {
+  transform: rotate(45deg) translate(10px, 10px);
+}
+
+.sidebar-hamburger.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.sidebar-hamburger.active span:nth-child(3) {
+  transform: rotate(-45deg) translate(7px, -7px);
+}
+
+/* Main Content Area Adjustment */
+.main-content-wrapper {
+  transition: margin-left 0.3s ease;
+  margin-left: 230px; /* make room for desktop sidebar */
+  padding: 20px;
+}
+
+/* Tablet View (768px and below) */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    height: auto;
+    padding: 20px 15px;
+    position: fixed;
+    top: 130px;
+    left: -100%;
+    background: #111;
+    border-right: 1px solid #333;
+    max-height: calc(100vh - 130px);
+    overflow-y: auto;
+  }
+
+  .sidebar.active {
+    left: 0;
+  }
+
+  /* remove content left margin on mobile */
+  .main-content-wrapper {
+    margin-left: 0;
+    padding: 16px;
+  }
+
+  .sidebar-hamburger {
+    display: flex;
+  }
+
+  .menu li {
+    margin: 10px 0;
+  }
+
+  .menu li a,
+  .menu li button {
+    font-size: 16px;
+    padding: 12px;
+  }
+
+  .logo {
+    display: none;
+  }
+}
+
+/* Mobile View (480px and below) */
+@media (max-width: 480px) {
+  .sidebar {
+    top: 110px;
+    padding: 15px 10px;
+  }
+
+  .sidebar-hamburger span {
+    width: 22px;
+    height: 2.5px;
+  }
+
+  .menu li {
+    margin: 8px 0;
+  }
+
+  .menu li a,
+  .menu li button {
+    font-size: 14px;
+    padding: 10px 8px;
+  }
+
+  .logout-btn {
+    padding: 10px;
+    font-size: 14px;
+    margin-top: 15px;
+  }
 }

@@ -7,7 +7,7 @@ export default function Layout() {
   return (
     <>
       <Header />
-      <main style={{ minHeight: "calc(100vh - 120px)" }}>
+      <main className="main-content-wrapper" style={{ minHeight: "calc(100vh - 120px)" }}>
         <Outlet />
       </main>
       <Footer />

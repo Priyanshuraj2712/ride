@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "./Header.css";
@@ -6,22 +6,35 @@ import "./Header.css";
 export default function Header() {
   const { isAuthenticated, isDriver, isPassenger, auth, logout } = useAuth();
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   console.log("[Header] Auth State:", { isAuthenticated, isDriver, isPassenger, user: auth.user });
 
   const handleLogout = () => {
     logout();
     navigate("/login");
+    setMenuOpen(false);
+  };
+
+  const closeMenu = () => setMenuOpen(false);
+
+  // Toggle the sidebar (send event that sidebars listen to)
+  const toggleSidebar = () => {
+    // animate hamburger locally
+    setMenuOpen((v) => !v);
+    // dispatch a global event so sidebars react
+    window.dispatchEvent(new CustomEvent("toggleSidebar"));
   };
 
   return (
     <header style={{
       display: "flex",
-      justifyContent: "space-between",
+      justifyContent: "flex-start",
       alignItems: "center",
-      padding: "0.05rem 0.2rem",
+      padding: "0.05rem 1rem",
       background: "#faede8",
-      color: "#000"
+      color: "#000",
+      gap: "20px"
     }}>
       <div style={{ fontWeight: 700, fontSize: 18 }}>
         <Link to={isAuthenticated ? (isDriver ? "/driver/dashboard" : "/passenger/dashboard") : "/"} style={{ color: "inherit", textDecoration: "none" }}>
@@ -59,6 +72,13 @@ export default function Header() {
           </>
         )}
       </nav>
+
+      {/* Hamburger Menu Icon (mobile) - toggles sidebar */}
+      <div className={`hamburger ${menuOpen ? "active" : ""}`} onClick={toggleSidebar}>
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
     </header>
   );
 }

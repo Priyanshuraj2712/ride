@@ -1,6 +1,5 @@
 .driver-sidebar {
   width: 230px;
-  height: 100vh;
   background: #0e1111;
   color: #fff;
   position: fixed;
@@ -8,6 +7,12 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  left: 0;
+  top: var(--header-height); /* below header */
+  bottom: var(--footer-height); /* above footer */
+  z-index: 100;
+  transition: all 0.3s ease;
+  overflow-y: auto;
 }
 
 .driver-logo {
@@ -22,20 +27,29 @@
   list-style: none;
   padding: 0;
   margin: 0;
+  flex: 1;
 }
 
 .driver-menu li {
   margin: 12px 0;
 }
 
-.driver-menu li a {
+.driver-menu li a,
+.driver-menu li button {
   color: #e0e0e0;
   text-decoration: none;
   font-size: 15px;
+  display: block;
+  padding: 10px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
 }
 
-.driver-menu li a:hover {
+.driver-menu li a:hover,
+.driver-menu li button:hover {
   color: #00e676;
+  background-color: rgba(0, 230, 118, 0.1);
+  padding-left: 20px;
 }
 
 .driver-menu li.active a {
@@ -46,19 +60,123 @@
 .driver-logout-btn {
   margin-top: 20px;
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   border-radius: 6px;
   border: none;
   background: #ff5252;
-  cursor: pointer;
-}
-
-.driver-logout-btn a {
   color: #fff;
-  text-decoration: none;
+  cursor: pointer;
   font-weight: 600;
+  font-size: 16px;
+  transition: all 0.3s ease;
 }
 
 .driver-logout-btn:hover {
   background: #ff1744;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 23, 68, 0.3);
+}
+
+/* Hamburger Menu Icon */
+.driver-sidebar-hamburger {
+  display: none;
+  flex-direction: column;
+  cursor: pointer;
+  gap: 5px;
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  z-index: 101;
+}
+
+.driver-sidebar-hamburger span {
+  width: 25px;
+  height: 3px;
+  background: #3e4749;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.driver-sidebar-hamburger.active span:nth-child(1) {
+  transform: rotate(45deg) translate(10px, 10px);
+}
+
+.driver-sidebar-hamburger.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.driver-sidebar-hamburger.active span:nth-child(3) {
+  transform: rotate(-45deg) translate(7px, -7px);
+}
+
+/* Tablet View (768px and below) */
+@media (max-width: 768px) {
+  .driver-sidebar {
+    width: 100%;
+    height: auto;
+    padding: 20px 15px;
+    position: fixed;
+    top: 130px;
+    left: -100%;
+    background: #0e1111;
+    border-right: 1px solid #333;
+    max-height: calc(100vh - 130px);
+    overflow-y: auto;
+    flex-direction: column;
+  }
+
+  .driver-sidebar.active {
+    left: 0;
+  }
+
+  .driver-sidebar-hamburger {
+    display: flex;
+  }
+
+  .driver-menu li {
+    margin: 10px 0;
+  }
+
+  .driver-menu li a,
+  .driver-menu li button {
+    font-size: 15px;
+    padding: 12px;
+  }
+
+  .driver-logo {
+    display: none;
+  }
+
+  .driver-logout-btn {
+    margin-top: 15px;
+  }
+}
+
+/* Mobile View (480px and below) */
+@media (max-width: 480px) {
+  .driver-sidebar {
+    top: 110px;
+    padding: 15px 10px;
+  }
+
+  .driver-sidebar-hamburger span {
+    width: 22px;
+    height: 2.5px;
+  }
+
+  .driver-menu li {
+    margin: 8px 0;
+  }
+
+  .driver-menu li a,
+  .driver-menu li button {
+    font-size: 13px;
+    padding: 10px 8px;
+  }
+
+  .driver-logout-btn {
+    padding: 10px;
+    font-size: 14px;
+    margin-top: 15px;
+  }
 }
