@@ -118,6 +118,14 @@ const router = createBrowserRouter([
           </PrivateRoute>
         ),
       },
+      {
+        path: "track/:id",
+        element: (
+          <PrivateRoute role="passenger">
+            <LiveTracking />
+          </PrivateRoute>
+        ),
+      },
 
       {
         path: "passenger/reviews",
