@@ -101,7 +101,7 @@ const MyRides = () => {
     <div className="myrides-container">
       <div className="myrides-header">
         <h1>My Rides</h1>
-        <button className="btn-book-ride" onClick={() => navigate("/book-ride")}>
+        <button className="btn-book-ride" onClick={() => navigate("/passenger/book")}>
           + Book New Ride
         </button>
       </div>

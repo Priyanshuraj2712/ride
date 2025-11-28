@@ -87,7 +87,7 @@ const BookRide = () => {
       }
 
       // Redirect to MyRides page after successful booking
-      navigate("/my-rides");
+      navigate("/passenger/rides");
     } catch (err) {
       console.error(err);
       alert("Booking failed: " + err.message);
