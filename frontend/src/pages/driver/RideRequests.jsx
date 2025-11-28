@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import DriverSidebar from "../../components/DriverSidebar";
 import socket from "../../services/socket";
 import axios from "../../services/api";
@@ -6,6 +7,7 @@ import "./driver.css";
 
 const RideRequests = () => {
   const [requests, setRequests] = useState([]);
+  const navigate = useNavigate();
 
   // Load assigned pending rides for logged-in driver
   const loadRequests = async () => {
@@ -52,7 +54,8 @@ const RideRequests = () => {
         }
       );
 
-      alert("Ride accepted!");
+      // Ride accepted - navigate to Active Ride so driver sees ride details
+      navigate("/driver/active-ride");
       loadRequests();
 
       socket.emit("driverAcceptedRide", { rideId });

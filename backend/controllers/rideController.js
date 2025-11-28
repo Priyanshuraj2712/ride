@@ -140,6 +140,21 @@ exports.driverRespond = async (req, res, next) => {
       if (passengerSocket)
         io.to(passengerSocket).emit("rideAssigned", { rideId: ride._id });
 
+      // notify the driver (if connected) with OTPs so driver UI can display them
+      try {
+        const driverSocketId = userSocketMap.get(driver.user.toString());
+        if (driverSocketId) {
+          io.to(driverSocketId).emit("rideAssignedToDriver", {
+            rideId: ride._id,
+            otpStart: ride.otpStart,
+            otpEnd: ride.otpEnd,
+            ride,
+          });
+        }
+      } catch (err) {
+        console.error("Failed to emit rideAssignedToDriver", err.message || err);
+      }
+
       return res.json({ success: true, ride });
     }
 
@@ -199,7 +214,8 @@ exports.driverMyRides = async (req, res, next) => {
     const driver = await DriverModel.findOne({ user: req.user._id });
     if (!driver) return res.status(404).json({ message: "Driver not found" });
 
-    const rides = await Ride.find({ driver: driver._id })
+    // Return only pending rides for the driver's requests list
+    const rides = await Ride.find({ driver: driver._id, status: 'pending' })
       .sort({ "timestamps.requestedAt": -1 })
       .populate("createdBy", "name email")
       .populate("passengers.user", "name");
@@ -277,7 +293,14 @@ exports.myRides = async (req, res, next) => {
         { createdBy: userId },
         { 'passengers.user': userId },
       ],
-    }).sort({ 'timestamps.requestedAt': -1 });
+    })
+      .sort({ 'timestamps.requestedAt': -1 })
+      .populate({
+        path: 'driver',
+        populate: { path: 'user', select: 'name email' },
+      })
+      .populate('createdBy', 'name email')
+      .populate('passengers.user', 'name email');
 
     res.json({ rides });
   } catch (err) {

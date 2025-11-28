@@ -104,6 +104,13 @@ const LiveTracking = () => {
     <div style={{ padding: "10px" }}>
       <h2>Live Tracking</h2>
       <p>Ride ID: {id}</p>
+      {/* Show OTPs to passenger so they can give start OTP to driver */}
+      {ride.otpStart && (ride.status === 'accepted' || ride.status === 'ongoing') && (
+        <p style={{ fontWeight: 'bold' }}>Start OTP: {ride.otpStart}</p>
+      )}
+      {ride.otpEnd && ride.status === 'ongoing' && (
+        <p style={{ fontWeight: 'bold' }}>End OTP: {ride.otpEnd}</p>
+      )}
 
       <div
         ref={mapContainerRef}

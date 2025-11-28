@@ -7,6 +7,8 @@ const DriverProfile = () => {
   const [user, setUser] = useState(null);
   const [driver, setDriver] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState({});
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -20,6 +22,14 @@ const DriverProfile = () => {
         // Backend should return both
         setUser(res.data.user || null);
         setDriver(res.data.driver || null);
+        setForm({
+          name: res.data.user?.name || "",
+          phone: res.data.user?.phone || "",
+          vehicleNumber: res.data.driver?.vehicle?.vehicleNumber || "",
+          model: res.data.driver?.vehicle?.model || "",
+          totalSeats: res.data.driver?.vehicle?.totalSeats || "",
+          color: res.data.driver?.vehicle?.color || "",
+        });
       } catch (err) {
         console.error("Profile load error:", err);
       }
@@ -42,33 +52,133 @@ const DriverProfile = () => {
         </div>
 
         <div className="driver-upcoming-card">
-          <p><strong>Name:</strong> {user?.name}</p>
-          <p><strong>Email:</strong> {user?.email}</p>
-          <p><strong>Phone:</strong> {user?.phone}</p>
-
-          <hr />
-
-          {driver?.vehicle ? (
+          {!editing ? (
             <>
-              <p><strong>Vehicle No:</strong> {driver.vehicle.vehicleNumber}</p>
-              <p><strong>Model:</strong> {driver.vehicle.model}</p>
-              <p><strong>Seats:</strong> {driver.vehicle.totalSeats}</p>
-              <p>
-                <strong>Status:</strong>{" "}
-                {driver.online ? (
-                  <span style={{ color: "green" }}>Online</span>
-                ) : (
-                  <span style={{ color: "red" }}>Offline</span>
-                )}
-              </p>
+              <p><strong>Name:</strong> {user?.name}</p>
+              <p><strong>Email:</strong> {user?.email}</p>
+              <p><strong>Phone:</strong> {user?.phone}</p>
+
+              <hr />
+
+              {driver?.vehicle ? (
+                <>
+                  <p><strong>Vehicle No:</strong> {driver.vehicle.vehicleNumber}</p>
+                  <p><strong>Model:</strong> {driver.vehicle.model}</p>
+                  <p><strong>Seats:</strong> {driver.vehicle.totalSeats}</p>
+                  <p>
+                    <strong>Status:</strong>{" "}
+                    {driver.online ? (
+                      <span style={{ color: "green" }}>Online</span>
+                    ) : (
+                      <span style={{ color: "red" }}>Offline</span>
+                    )}
+                  </p>
+                </>
+              ) : (
+                <p>No vehicle details available.</p>
+              )}
+
+              <div className="driver-upcoming-actions">
+                {!editing ? (
+                  <button className="driver-secondary-btn" onClick={() => setEditing(true)}>Edit Profile</button>
+                ) : null}
+              </div>
             </>
           ) : (
-            <p>No vehicle details available.</p>
+            <>
+              <label>
+                Name
+                <input
+                  type="text"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                />
+              </label>
+              <label>
+                Phone
+                <input
+                  type="text"
+                  value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                />
+              </label>
+
+              <hr />
+
+              <label>
+                Vehicle Number
+                <input
+                  type="text"
+                  value={form.vehicleNumber}
+                  onChange={(e) => setForm({ ...form, vehicleNumber: e.target.value })}
+                />
+              </label>
+              <label>
+                Model
+                <input
+                  type="text"
+                  value={form.model}
+                  onChange={(e) => setForm({ ...form, model: e.target.value })}
+                />
+              </label>
+              <label>
+                Total Seats
+                <input
+                  type="number"
+                  value={form.totalSeats}
+                  onChange={(e) => setForm({ ...form, totalSeats: e.target.value })}
+                />
+              </label>
+              <label>
+                Color
+                <input
+                  type="text"
+                  value={form.color}
+                  onChange={(e) => setForm({ ...form, color: e.target.value })}
+                />
+              </label>
+
+              <div className="driver-upcoming-actions">
+                <button
+                  className="driver-primary-btn"
+                  onClick={async () => {
+                    try {
+                      const token = localStorage.getItem("token");
+                      const payload = {
+                        name: form.name,
+                        phone: form.phone,
+                        vehicleNumber: form.vehicleNumber,
+                        model: form.model,
+                        totalSeats: form.totalSeats,
+                        color: form.color,
+                      };
+
+                      const res = await axios.put("/api/driver/me", payload, {
+                        headers: { Authorization: `Bearer ${token}` },
+                      });
+
+                      setUser(res.data.user);
+                      setDriver(res.data.driver);
+                      setEditing(false);
+                      alert("Profile updated");
+                    } catch (err) {
+                      console.error(err);
+                      alert("Failed to update profile");
+                    }
+                  }}
+                >
+                  Save
+                </button>
+                <button className="driver-danger-btn" onClick={() => setEditing(false)}>
+                  Cancel
+                </button>
+              </div>
+            </>
           )}
 
-          <div className="driver-upcoming-actions">
-            <button className="driver-secondary-btn">Edit Profile</button>
-          </div>
+          
+
+          
         </div>
       </div>
     </div>

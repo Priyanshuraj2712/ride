@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import DriverSidebar from "../../components/DriverSidebar";
 import socket from "../../services/socket";
 import axios from "../../services/api";
@@ -8,8 +8,16 @@ import "./driver.css";
 const DriverDashboard = () => {
   const [incomingRide, setIncomingRide] = useState(null);
   const [online, setOnline] = useState(false);
+  const [stats, setStats] = useState({
+    todaysRides: 0,
+    earningsToday: 0,
+    totalCompleted: 0,
+    earningsTotal: 0,
+  });
 
   const navigate = useNavigate();
+  const watchIdRef = useRef(null);
+  const [driverData, setDriverData] = useState(null);
 
   // -------------------------------------------
   // LOAD DRIVER STATUS INITIALLY
@@ -24,6 +32,12 @@ const DriverDashboard = () => {
         });
 
         setOnline(res.data.driver.online || false);
+        setDriverData(res.data.driver || null);
+        if (res.data.stats) {
+          setStats(res.data.stats);
+        } else if (res.data.driver) {
+          setStats((s) => ({ ...s, earningsTotal: res.data.driver.earningsTotal || s.earningsTotal }));
+        }
       } catch (err) {
         console.error("Failed to load driver status:", err);
       }
@@ -45,6 +59,11 @@ const DriverDashboard = () => {
 
     return () => {
       socket.off("rideRequest", handleRideRequest);
+      // cleanup geolocation watcher if present
+      if (watchIdRef.current != null && navigator && navigator.geolocation) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
     };
   }, []);
 
@@ -64,10 +83,83 @@ const DriverDashboard = () => {
       );
 
       setOnline(res.data.online);
+
+      // start or stop location updates based on new online state
+      if (res.data.online) {
+        startLocationUpdates();
+      } else {
+        stopLocationUpdates();
+      }
     } catch (err) {
       console.error(err);
       alert("Failed to update online status");
     }
+  };
+
+  const startLocationUpdates = async () => {
+    if (!navigator || !navigator.geolocation) {
+      console.warn("Geolocation not available");
+      return;
+    }
+
+    // one-time immediate update
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        const token = localStorage.getItem("token");
+        try {
+          await axios.post(
+            "/api/location/driver",
+            { latitude, longitude, timestamp: pos.timestamp },
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+        } catch (err) {
+          console.error("Failed to send initial location", err);
+        }
+      },
+      (err) => console.error("getCurrentPosition error", err),
+      { enableHighAccuracy: true }
+    );
+
+    // start continuous watch
+    const id = navigator.geolocation.watchPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        const token = localStorage.getItem("token");
+
+        // send to REST endpoint (updates driver.liveLocation)
+        axios
+          .post(
+            "/api/location/driver",
+            { latitude, longitude, timestamp: pos.timestamp },
+            { headers: { Authorization: `Bearer ${token}` } }
+          )
+          .catch((err) => console.error("location update failed", err));
+
+        // emit socket event for active ride tracking
+        socket.emit("driverLocation", {
+          latitude,
+          longitude,
+          timestamp: pos.timestamp,
+        });
+      },
+      (err) => console.error("watchPosition error", err),
+      { enableHighAccuracy: true, maximumAge: 2000, timeout: 10000 }
+    );
+
+    watchIdRef.current = id;
+  };
+
+  const stopLocationUpdates = () => {
+    try {
+      if (watchIdRef.current != null && navigator && navigator.geolocation) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+      }
+    } catch (err) {
+      console.error("Failed to stop location watch", err);
+    }
+
+    watchIdRef.current = null;
   };
 
   // -------------------------------------------
@@ -194,20 +286,17 @@ const DriverDashboard = () => {
           <div className="driver-stats-grid">
             <div className="driver-card">
               <h3>Today's Rides</h3>
-              <p className="driver-card-number">4</p>
+              <p className="driver-card-number">{stats.todaysRides ?? 0}</p>
             </div>
             <div className="driver-card">
               <h3>Earnings Today</h3>
-              <p className="driver-card-number">₹850</p>
+              <p className="driver-card-number">₹{stats.earningsToday ?? 0}</p>
             </div>
             <div className="driver-card">
               <h3>Rating</h3>
-              <p className="driver-card-number">4.8 ⭐</p>
+              <p className="driver-card-number">{driverData?.rating ?? "-"} ⭐</p>
             </div>
-            <div className="driver-card">
-              <h3>Online Time</h3>
-              <p className="driver-card-number">3h 20m</p>
-            </div>
+            
           </div>
         </div>
 

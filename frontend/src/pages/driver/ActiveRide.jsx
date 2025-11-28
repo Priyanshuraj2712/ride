@@ -151,7 +151,9 @@ const ActiveRide = () => {
               <strong>Status:</strong> {ride.status}
             </p>
 
-            {/* OTP Input */}
+             
+
+              {/* OTP Input */}
             <input
               type="text"
               placeholder="Enter OTP"
@@ -173,9 +175,7 @@ const ActiveRide = () => {
                 </button>
               )}
 
-              <button className="driver-danger-btn" onClick={handleSOS}>
-                SOS
-              </button>
+              
             </div>
           </div>
         )}
