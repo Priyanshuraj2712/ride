@@ -8,8 +8,9 @@ const MyRides = () => {
   const navigate = useNavigate();
   const [rides, setRides] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] = useState("all"); // all, pending, accepted, ongoing, completed
 
+  // Fetch user's rides
   const fetchRides = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -26,27 +27,53 @@ const MyRides = () => {
   useEffect(() => {
     fetchRides();
 
-    // Real-time socket listeners
-    const handleRideUpdate = (updatedRide) => {
+    // Real-time socket listeners for immediate updates
+    socket.on("rideUpdated", (updatedRide) => {
       setRides((prevRides) =>
         prevRides.map((ride) =>
           ride._id === updatedRide._id ? updatedRide : ride
         )
       );
-    };
+    });
 
-    socket.on("rideUpdated", handleRideUpdate);
-    socket.on("rideAccepted", handleRideUpdate);
-    socket.on("rideStarted", handleRideUpdate);
-    socket.on("rideCompleted", handleRideUpdate);
-    socket.on("rideCancelled", handleRideUpdate);
+    socket.on("rideAccepted", (updatedRide) => {
+      setRides((prevRides) =>
+        prevRides.map((ride) =>
+          ride._id === updatedRide._id ? updatedRide : ride
+        )
+      );
+    });
+
+    socket.on("rideStarted", (updatedRide) => {
+      setRides((prevRides) =>
+        prevRides.map((ride) =>
+          ride._id === updatedRide._id ? updatedRide : ride
+        )
+      );
+    });
+
+    socket.on("rideCompleted", (updatedRide) => {
+      setRides((prevRides) =>
+        prevRides.map((ride) =>
+          ride._id === updatedRide._id ? updatedRide : ride
+        )
+      );
+    });
+
+    socket.on("rideCancelled", (updatedRide) => {
+      setRides((prevRides) =>
+        prevRides.map((ride) =>
+          ride._id === updatedRide._id ? updatedRide : ride
+        )
+      );
+    });
 
     return () => {
-      socket.off("rideUpdated", handleRideUpdate);
-      socket.off("rideAccepted", handleRideUpdate);
-      socket.off("rideStarted", handleRideUpdate);
-      socket.off("rideCompleted", handleRideUpdate);
-      socket.off("rideCancelled", handleRideUpdate);
+      socket.off("rideUpdated");
+      socket.off("rideAccepted");
+      socket.off("rideStarted");
+      socket.off("rideCompleted");
+      socket.off("rideCancelled");
     };
   }, []);
 
@@ -101,11 +128,15 @@ const MyRides = () => {
     <div className="myrides-container">
       <div className="myrides-header">
         <h1>My Rides</h1>
-        <button className="btn-book-ride" onClick={() => navigate("/book-ride")}>
+        <button
+          className="btn-book-ride"
+          onClick={() => navigate("/book-ride")}
+        >
           + Book New Ride
         </button>
       </div>
 
+      {/* Filter tabs */}
       <div className="filter-tabs">
         {["all", "pending", "accepted", "ongoing", "completed"].map((tab) => (
           <button
@@ -118,6 +149,7 @@ const MyRides = () => {
         ))}
       </div>
 
+      {/* Rides list */}
       {filteredRides().length === 0 ? (
         <div className="empty-state">
           <div className="empty-icon">🚗</div>
@@ -127,12 +159,16 @@ const MyRides = () => {
               ? "You haven't booked any rides yet. Start by booking your first ride!"
               : `No ${filter} rides found.`}
           </p>
-          <button className="btn-primary" onClick={() => navigate("/book-ride")}>
+          <button
+            className="btn-primary"
+            onClick={() => navigate("/book-ride")}
+          >
             Book a Ride
           </button>
         </div>
       ) : (
         <div className="rides-sections">
+          {/* Upcoming Rides */}
           {upcomingRides.length > 0 && (
             <div className="rides-section">
               <h2 className="section-title">🔴 Upcoming</h2>
@@ -150,6 +186,7 @@ const MyRides = () => {
             </div>
           )}
 
+          {/* Past Rides */}
           {pastRides.length > 0 && (
             <div className="rides-section">
               <h2 className="section-title">✓ History</h2>
@@ -172,6 +209,7 @@ const MyRides = () => {
   );
 };
 
+// Ride Card Component
 const RideCard = ({ ride, navigate, getStatusBadge, formatDate }) => {
   const status = getStatusBadge(ride.status);
 
@@ -221,6 +259,7 @@ const RideCard = ({ ride, navigate, getStatusBadge, formatDate }) => {
           )}
         </div>
 
+        {/* OTPs Display */}
         {(ride.status === "accepted" || ride.status === "ongoing") && (
           <div className="otp-container">
             {ride.otpStart && (
@@ -241,7 +280,10 @@ const RideCard = ({ ride, navigate, getStatusBadge, formatDate }) => {
 
       <div className="ride-card-footer">
         {(ride.status === "accepted" || ride.status === "ongoing") && (
-          <button className="btn-track" onClick={() => navigate(`/track/${ride._id}`)}>
+          <button
+            className="btn-track"
+            onClick={() => navigate(`/track/${ride._id}`)}
+          >
             📍 Track Ride
           </button>
         )}

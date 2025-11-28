@@ -86,7 +86,8 @@ const BookRide = () => {
         console.debug('Request API failed, mock ok', e.message || e);
       }
 
-      alert("Ride request sent! Waiting for driver...");
+      // Redirect to MyRides page after successful booking
+      navigate("/my-rides");
     } catch (err) {
       console.error(err);
       alert("Booking failed: " + err.message);
