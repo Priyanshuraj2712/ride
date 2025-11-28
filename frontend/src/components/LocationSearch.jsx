@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
+import "./LocationSearch.css";
 
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN; // FIXED
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
 const LocationSearch = ({ onSelect, placeholder }) => {
   const [query, setQuery] = useState("");
@@ -64,31 +65,29 @@ const LocationSearch = ({ onSelect, placeholder }) => {
   };
 
   return (
-    <div className="relative w-full" ref={wrapperRef}>
+    <div className="location-search-wrapper" ref={wrapperRef}>
       <input
         type="text"
         placeholder={placeholder}
         value={query}
         onChange={(e) => searchLocation(e.target.value)}
-        className="w-full p-3 border rounded-md shadow-sm"
+        className="location-search-input"
       />
 
       {showList && results.length > 0 && (
-        <ul
-          className="absolute w-full bg-white border rounded-md shadow-md mt-1 max-h-60 overflow-y-auto z-30"
-        >
+        <ul className="location-search-results">
           {results.map((item, index) => (
             <li
               key={index}
-              className="p-3 hover:bg-gray-100 cursor-pointer border-b"
+              className="location-search-item"
               onClick={() => {
-                onSelect(item); // return selected location
+                onSelect(item);
                 setQuery(item.address);
                 setShowList(false);
                 setResults([]);
               }}
             >
-              {item.address}
+              📍 {item.address}
             </li>
           ))}
         </ul>

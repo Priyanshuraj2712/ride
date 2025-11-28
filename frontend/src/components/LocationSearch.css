@@ -1,0 +1,57 @@
+.location-search-wrapper{
+  position: relative;
+  width: 100%;
+}
+
+.location-search-input{
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid #e3e3e3;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.location-search-input:focus{
+  outline: none;
+  border-color: #0b76ef;
+}
+
+.location-search-results{
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 2px solid #0b76ef;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  max-height: 220px;
+  overflow-y: auto;
+  background: #fff;
+  position: absolute;
+  width: 100%;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(11, 118, 239, 0.15);
+  top: 100%;
+  left: 0;
+}
+
+.location-search-item{
+  padding: 12px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 14px;
+  color: #333;
+  transition: background 0.15s ease;
+}
+
+.location-search-item:hover{
+  background: #e8f1ff;
+  color: #0b76ef;
+  font-weight: 500;
+}
+
+.location-search-item:last-child{
+  border-bottom: none;
+}

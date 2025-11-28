@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "./Header.css";
@@ -25,6 +25,13 @@ export default function Header() {
     // dispatch a global event so sidebars react
     window.dispatchEvent(new CustomEvent("toggleSidebar"));
   };
+
+  // Listen for sidebar toggles coming from sidebars so icon stays in sync
+  useEffect(() => {
+    const handler = () => setMenuOpen((v) => !v);
+    window.addEventListener("toggleSidebar", handler);
+    return () => window.removeEventListener("toggleSidebar", handler);
+  }, []);
 
   return (
     <header style={{

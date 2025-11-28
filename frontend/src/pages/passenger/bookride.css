@@ -1,0 +1,22 @@
+.bookride-page{ display:flex; justify-content:center; padding:18px; }
+.form-card{ width:100%; max-width:760px; background:#fff; border-radius:8px; padding:18px; box-shadow:0 6px 18px rgba(0,0,0,0.06); position:relative; }
+.form-card h2{ margin:0 0 12px 0; }
+.input-group{ position:relative; margin-bottom:18px; }
+.input-group label{ display:block; margin-bottom:6px; font-weight:600; font-size:14px; color:#333; }
+.row{ display:flex; align-items:center; gap:12px; margin-top:18px; }
+.row label{ font-weight:600; font-size:14px; color:#333; white-space:nowrap; }
+.select{ padding:10px 12px; border:2px solid #e3e3e3; border-radius:6px; font-size:14px; transition:border-color 0.2s ease; cursor:pointer; }
+.select:focus{ outline:none; border-color:#0b76ef; }
+.fare{ margin-top:18px; padding:12px 14px; background:#e8f1ff; border-left:4px solid #0b76ef; border-radius:4px; font-weight:700; color:#0b76ef; font-size:16px; }
+.actions{ margin-top:20px; }
+.primary{ background:#0b76ef; color:#fff; padding:12px 24px; border-radius:6px; border:none; cursor:pointer; font-size:14px; font-weight:600; transition:background 0.2s ease; width:100%; }
+.primary:hover{ background:#0a5db8; }
+.primary:disabled{ opacity:0.6; cursor:not-allowed; }
+
+/* map area spacing - matches MockMap component class */
+.mock-map{ margin-top:20px; height:240px; border-radius:6px; overflow:hidden; border:1px solid #eee; }
+
+@media (max-width:600px){
+  .form-card{ padding:12px; }
+  .mock-map{ height:180px; }
+}
