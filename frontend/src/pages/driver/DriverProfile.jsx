@@ -153,12 +153,49 @@ const DriverProfile = () => {
                         color: form.color,
                       };
 
-                      const res = await axios.put("/api/driver/me", payload, {
+                      // Update user fields via PUT (name, phone). Vehicle will be updated via dedicated endpoint.
+                      try {
+                        await axios.put(
+                          "/api/driver/me",
+                          { name: form.name, phone: form.phone },
+                          { headers: { Authorization: `Bearer ${token}` } }
+                        );
+                      } catch (e) {
+                        // non-fatal, continue to attempt vehicle update
+                        console.warn("Failed to update user info:", e?.response?.data || e.message);
+                      }
+
+                      // Update or create vehicle using dedicated endpoint
+                      try {
+                        await axios.post(
+                          "/api/drivers/vehicle",
+                          {
+                            vehicleNumber: form.vehicleNumber,
+                            totalSeats: Number(form.totalSeats) || 0,
+                            model: form.model,
+                            color: form.color,
+                          },
+                          { headers: { Authorization: `Bearer ${token}` } }
+                        );
+                      } catch (e) {
+                        console.warn("Vehicle update failed:", e?.response?.data || e.message);
+                        throw e;
+                      }
+
+                      // Refresh profile
+                      const refreshed = await axios.get("/api/driver/me", {
                         headers: { Authorization: `Bearer ${token}` },
                       });
 
-                      setUser(res.data.user);
-                      setDriver(res.data.driver);
+                      setUser(refreshed.data.user);
+                      setDriver(refreshed.data.driver);
+                      setForm((f) => ({
+                        ...f,
+                        vehicleNumber: refreshed.data.driver?.vehicle?.vehicleNumber || "",
+                        model: refreshed.data.driver?.vehicle?.model || "",
+                        totalSeats: refreshed.data.driver?.vehicle?.totalSeats || "",
+                        color: refreshed.data.driver?.vehicle?.color || "",
+                      }));
                       setEditing(false);
                       alert("Profile updated");
                     } catch (err) {
