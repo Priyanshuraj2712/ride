@@ -93,6 +93,25 @@ const Carpool = () => {
     }
   };
 
+  const leaveCarpool = async (id) => {
+  try {
+    const token = localStorage.getItem("token");
+
+    await axios.post(
+      `/api/carpool/${id}/leave`,
+      {},
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    alert("You left the carpool.");
+    loadCarpools();
+  } catch (err) {
+    console.error(err);
+    alert("Unable to leave the carpool.");
+  }
+};
+
+
   return (
     <div style={{ padding: "20px" }}>
       <h2>Carpool</h2>
@@ -173,14 +192,25 @@ const Carpool = () => {
             <p><strong>Price/Seat:</strong> ₹{c.pricePerSeat}</p>
 
             {c.joined ? (
-  <p style={{ color: "green", fontWeight: "bold" }}>✔ You have joined this carpool</p>
-) : (
-  c.seatsRemaining > 0 ? (
-    <button onClick={() => joinCarpool(c._id)}>Join</button>
-  ) : (
-    <p style={{ color: "red" }}>Full</p>
-  )
-)}
+              <>
+              <p style={{ color: "green", fontWeight: "bold", marginBottom: "6px" }}>
+                ✔ You have joined this carpool
+              </p>
+                  <button
+                    style={{ backgroundColor: "red", color: "white", padding: "6px 12px" }}
+                    onClick={() => leaveCarpool(c._id)}
+                  >
+                    Leave Carpool
+                  </button>
+                  </>
+                ) : (
+                  c.seatsRemaining > 0 ? (
+                    <button onClick={() => joinCarpool(c._id)}>Join</button>
+                  ) : (
+                    <p style={{ color: "red" }}>Full</p>
+                  )
+          )}
+
           </div>
         ))
       )}

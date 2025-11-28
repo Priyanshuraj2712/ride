@@ -49,3 +49,41 @@ exports.joinCarpool = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.leaveCarpool = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user._id;
+
+    const cp = await Carpool.findById(id);
+    if (!cp) return res.status(404).json({ message: "Carpool not found" });
+
+    // Check if the user is part of this carpool
+    const passengerIndex = cp.passengers.findIndex(
+      p => String(p.user) === String(userId)
+    );
+
+    if (passengerIndex === -1)
+      return res.status(400).json({ message: "You are not in this carpool" });
+
+    const seatsBooked = cp.passengers[passengerIndex].seatsBooked;
+
+    // Remove user entry
+    cp.passengers.splice(passengerIndex, 1);
+
+    // Increase available seats
+    cp.seatsRemaining += seatsBooked;
+
+    // Reopen carpool if seats now available
+    if (cp.status === "closed" && cp.seatsRemaining > 0) {
+      cp.status = "open";
+    }
+
+    await cp.save();
+
+    res.json({ message: "Left the carpool", carpool: cp });
+  } catch (err) {
+    next(err);
+  }
+};
+
