@@ -38,7 +38,27 @@
 .nav-link:hover { background: rgba(255,255,255,0.04); }
 .nav-cta { background: linear-gradient(90deg,#42a5f5,#7b61ff); color: white; padding: 8px 14px; border-radius: 12px; text-decoration: none; font-weight: 700; }
 
-.home-hero.expanded { margin-top: 20px; display: grid; grid-template-columns: 1fr; gap: 26px; align-items: start; padding: 32px 6%; z-index: 5; }
+.home-hero.expanded {
+  margin-top: 0; /* remove extra gap so hero sits directly under header */
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 26px;
+  align-items: start;
+  padding: 32px 6%;
+  z-index: 5;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  width: 100vw;
+  box-sizing: border-box;
+}
+
+/* pull the home-root up slightly to cancel the extra 12px padding applied
+   by the main-content-wrapper (calc(var(--header-height) + 12px)) so the
+   hero sits flush below the fixed header */
+.home-root { margin-top: -12px; }
 .hero-large { display:flex; gap: 26px; align-items:stretch; }
 .hero-left { flex:1; }
 .hero-right { width:420px; display:flex; align-items:center; justify-content:center }

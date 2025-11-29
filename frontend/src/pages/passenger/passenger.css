@@ -3,7 +3,75 @@
 }
 
 .content-area {
-  margin-left: 250px;
+  margin-left: 0; /* default no offset; body.has-sidebar controls offset */
   padding: 30px;
   width: 100%;
+  box-sizing: border-box;
+}
+
+/* When sidebar present (desktop) reserve space */
+.has-sidebar .content-area {
+  margin-left: 250px;
+}
+
+/* Responsive: remove left offset on small screens */
+@media (max-width: 768px) {
+  .content-area { margin-left: 0; padding: 18px }
+  .passenger-layout { flex-direction: column }
+}
+
+/* Dashboard specific styles */
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.dash-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 6px 18px rgba(2,6,23,0.06);
+}
+
+.dash-card h3 { margin: 0 0 8px 0; font-size: 18px }
+
+.otp-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.otp-box {
+  background: #f7fafc;
+  border: 1px solid rgba(102,118,234,0.18);
+  padding: 10px 12px;
+  border-radius: 8px;
+  min-width: 120px;
+  text-align: center;
+}
+
+.otp-label { font-size: 11px; color: #6b7280; text-transform: uppercase }
+.otp-value { font-family: "Courier New", monospace; font-weight: 700; color: #2b6cb0 }
+
+.btn-primary, .btn-secondary {
+  border-radius: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-primary { background: linear-gradient(90deg,#42a5f5,#7b61ff); color: #fff }
+.btn-secondary { background: #eef2ff; color: #0b2540 }
+
+@media (max-width: 900px) {
+  .dashboard-cards { grid-template-columns: 1fr }
+  .otp-row { flex-direction: row; gap: 8px }
+}
+
+@media (max-width: 480px) {
+  .dashboard-cards { grid-template-columns: 1fr }
+  .dash-card { padding: 14px }
+  .otp-box { min-width: 80px; padding: 8px }
+  .btn-primary, .btn-secondary { width: 100%; display: block }
 }

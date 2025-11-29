@@ -7,43 +7,45 @@ const Reviews = () => {
   const [completedRides, setCompletedRides] = useState([]);
   const [ratingInputs, setRatingInputs] = useState({});
 
-  useEffect(() => {
-    const load = async () => {
-      const token = localStorage.getItem("token");
-      const role = localStorage.getItem("role");
-      const driverId = localStorage.getItem("driverId");
+  // Extracted load so it can be called after review
+  const load = async () => {
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
+    const driverId = localStorage.getItem("driverId");
 
-      if (role === "driver" && driverId) {
-        setIsDriver(true);
-        try {
-          const res = await axios.get(`/api/reviews/${driverId}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          setReviews(res.data.reviews || []);
-        } catch (err) {
-          console.error(err);
-        }
-        return;
-      }
-
-      // Passenger: fetch own rides and show completed rides with drivers
+    if (role === "driver" && driverId) {
+      setIsDriver(true);
       try {
-        const res = await axios.get(`/api/rides/user/my`, {
+        const res = await axios.get(`/api/reviews/${driverId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-
-        const rides = res.data.rides || [];
-        const completedWithDriver = rides.filter(
-          (r) => r.status === "completed" && r.driver
-        );
-
-        setCompletedRides(completedWithDriver);
+        setReviews(res.data.reviews || []);
       } catch (err) {
         console.error(err);
       }
-    };
+      return;
+    }
 
+    // Passenger: fetch own rides and show completed rides with drivers
+    try {
+      const res = await axios.get(`/api/rides/user/my`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const rides = res.data.rides || [];
+      const completedWithDriver = rides.filter(
+        (r) => r.status === "completed" && r.driver && (!r.rating && !r.review)
+      );
+
+      setCompletedRides(completedWithDriver);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
     load();
+    // eslint-disable-next-line
   }, []);
 
   const handleInputChange = (rideId, field, value) => {
@@ -69,8 +71,8 @@ const Reviews = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // remove ride from list or mark reviewed
-      setCompletedRides((prev) => prev.filter((r) => r._id !== rideId));
+      // Re-fetch rides to update review state
+      await load();
       alert("Review submitted");
     } catch (err) {
       console.error(err);

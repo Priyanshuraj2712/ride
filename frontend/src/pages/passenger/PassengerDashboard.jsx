@@ -18,34 +18,36 @@ const PassengerDashboard = () => {
   const [currentRide, setCurrentRide] = useState(null);
   const [unreviewedRide, setUnreviewedRide] = useState(null);
 
+  // Extracted fetchRides so it can be called after review
+  const fetchRides = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get("/api/rides/user/my", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const rides = res.data.rides || [];
+
+      // Current ride: accepted or ongoing
+      const current = rides.find((r) =>
+        ["accepted", "ongoing"].includes(r.status)
+      );
+      setCurrentRide(current || null);
+
+      // Find last completed ride without review/rating
+      const unrev = rides
+        .slice()
+        .reverse()
+        .find((r) => r.status === "completed" && !r.rating && !r.review);
+      setUnreviewedRide(unrev || null);
+    } catch (err) {
+      console.error("Failed to load rides for dashboard:", err);
+    }
+    setLoading(false);
+  };
+
   useEffect(() => {
-    const fetchRides = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const res = await axios.get("/api/rides/user/my", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const rides = res.data.rides || [];
-
-        // Current ride: accepted or ongoing
-        const current = rides.find((r) =>
-          ["accepted", "ongoing"].includes(r.status)
-        );
-        setCurrentRide(current || null);
-
-        // Find last completed ride without review/rating
-        const unrev = rides
-          .slice()
-          .reverse()
-          .find((r) => r.status === "completed" && !r.rating && !r.review);
-        setUnreviewedRide(unrev || null);
-      } catch (err) {
-        console.error("Failed to load rides for dashboard:", err);
-      }
-      setLoading(false);
-    };
-
     fetchRides();
+    // eslint-disable-next-line
   }, []);
 
   const handleQuickReview = async (rideId) => {
@@ -57,7 +59,8 @@ const PassengerDashboard = () => {
       await axios.post(`/api/rides/${rideId}/review`, body, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setUnreviewedRide(null);
+      // Re-fetch rides to update dashboard state
+      await fetchRides();
       alert("Thanks for the quick review!");
     } catch (err) {
       console.error("Quick review failed:", err);
@@ -135,27 +138,6 @@ const PassengerDashboard = () => {
                 <div style={{ marginTop: 12 }}>
                   <button onClick={() => navigate(`/track/${currentRide._id}`)} className="btn-primary">
                     Track Ride
-                  </button>
-                </div>
-              </div>
-            ) : unreviewedRide ? (
-              <div className="dash-card review-ride">
-                <h3>Review a recent ride</h3>
-                <p>
-                  <strong>From:</strong> {unreviewedRide.pickup?.address || "-"}
-                </p>
-                <p>
-                  <strong>To:</strong> {unreviewedRide.destination?.address || "-"}
-                </p>
-                <p>
-                  <strong>Fare:</strong> ₹{unreviewedRide.price}
-                </p>
-                <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
-                  <button onClick={() => handleQuickReview(unreviewedRide._id)} className="btn-primary">
-                    Give Quick Review
-                  </button>
-                  <button onClick={() => navigate(`/passenger/reviews`)} className="btn-secondary">
-                    Full Review
                   </button>
                 </div>
               </div>

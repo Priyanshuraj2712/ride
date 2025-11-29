@@ -7,17 +7,7 @@ const Home = () => {
     <div className="home-root">
       <div className="home-bg" />
 
-      <header className="home-header">
-        <div className="brand">Ridezy</div>
-        <nav className="home-nav">
-          <Link className="nav-link" to="/login">
-            Login
-          </Link>
-          <Link className="nav-cta" to="/register">
-            Register
-          </Link>
-        </nav>
-      </header>
+
 
       <main className="home-hero expanded">
         <section className="hero-card glass hero-large">
@@ -98,12 +88,7 @@ const Home = () => {
         </section>
       </main>
 
-      <footer className="home-footer expanded">
-        <div className="footer-inner">
-          <div className="footer-left">© {new Date().getFullYear()} Ridezy</div>
-          <div className="footer-right">Built for connected, community-driven mobility • Privacy-first • Open</div>
-        </div>
-      </footer>
+      
     </div>
   );
 };

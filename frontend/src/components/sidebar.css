@@ -102,10 +102,15 @@
 /* Main Content Area Adjustment */
 .main-content-wrapper {
   transition: margin-left 0.3s ease;
-  margin-left: 230px; /* make room for desktop sidebar */
+  margin-left: 0; /* default: no reserved sidebar space */
   padding: 20px;
   padding-top: calc(var(--header-height) + 12px);
   padding-bottom: calc(var(--footer-height) + 12px);
+}
+
+/* When the page should reserve space for the sidebar (authenticated) */
+.has-sidebar .main-content-wrapper {
+  margin-left: 230px; /* make room for desktop sidebar */
 }
 
 /* Tablet View (768px and below) */

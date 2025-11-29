@@ -33,6 +33,18 @@ export default function Header() {
     return () => window.removeEventListener("toggleSidebar", handler);
   }, []);
 
+  // Add/remove body class to indicate sidebar presence when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      document.body.classList.add("has-sidebar");
+    } else {
+      document.body.classList.remove("has-sidebar");
+    }
+
+    // cleanup on unmount
+    return () => document.body.classList.remove("has-sidebar");
+  }, [isAuthenticated]);
+
   return (
     <header style={{
       display: "flex",
