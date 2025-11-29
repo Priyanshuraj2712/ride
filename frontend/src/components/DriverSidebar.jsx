@@ -13,7 +13,7 @@ const DriverSidebar = () => {
 
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    navigate("/");
     setSidebarOpen(false);
   };
 

@@ -154,7 +154,7 @@ const PassengerDashboard = () => {
                   <button onClick={() => handleQuickReview(unreviewedRide._id)} className="btn-primary">
                     Give Quick Review
                   </button>
-                  <button onClick={() => navigate(`/ride-details/${unreviewedRide._id}`)} className="btn-secondary">
+                  <button onClick={() => navigate(`/passenger/reviews`)} className="btn-secondary">
                     Full Review
                   </button>
                 </div>

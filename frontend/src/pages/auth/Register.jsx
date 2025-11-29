@@ -14,6 +14,9 @@ const Register = () => {
     role: "passenger",
     vehicleNumber: "",
     vehicleModel: "",
+    walletId: "",
+    govtIdName: "",
+    govtIdVerified: false,
   });
 
   const [errors, setErrors] = useState({});
@@ -23,6 +26,25 @@ const Register = () => {
 
     // Clear corresponding error instantly when typing
     setErrors({ ...errors, [e.target.name]: "" });
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (file) {
+      // store only the filename as a placeholder for now
+      setForm((f) => ({ ...f, govtIdName: file.name, govtIdVerified: false }));
+      setErrors({ ...errors, govtId: "" });
+    }
+  };
+
+  const handleVerifyGovtId = () => {
+    if (!form.govtIdName) {
+      setErrors((s) => ({ ...s, govtId: "Please upload your government ID first." }));
+      return;
+    }
+    // Dummy verification flow: mark as verified
+    setForm((f) => ({ ...f, govtIdVerified: true }));
+    alert("Government ID verified (dummy)");
   };
 
   // -------------------------------
@@ -72,7 +94,11 @@ const Register = () => {
     if (!validate()) return;
 
     try {
+      // Send only the fields that backend expects. walletId and govtId are collected client-side only.
       let payload = { ...form };
+      delete payload.walletId;
+      delete payload.govtIdName;
+      delete payload.govtIdVerified;
 
       // Remove driver-only fields if passenger
       if (form.role !== "driver") {
@@ -165,6 +191,31 @@ const Register = () => {
             )}
           </>
         )}
+
+        {/* WALLET ID */}
+        <input
+          type="text"
+          name="walletId"
+          placeholder="Wallet ID (e.g. 0x...)"
+          onChange={handleChange}
+        />
+
+        {/* GOVT ID UPLOAD (DUMMY) */}
+        <div className="govt-id-row">
+          <label className="govt-upload">
+            <input type="file" accept="image/*,application/pdf" onChange={handleFileChange} />
+            <span className="upload-label">Upload Govt ID</span>
+          </label>
+          <button type="button" className="btn-verify" onClick={handleVerifyGovtId}>
+            Verify ID
+          </button>
+        </div>
+        {form.govtIdName && (
+          <div className="govt-summary">
+            <small>Uploaded: {form.govtIdName} {form.govtIdVerified ? "(verified)" : "(not verified)"}</small>
+          </div>
+        )}
+        {errors.govtId && <span className="error-text">{errors.govtId}</span>}
 
         {/* SERVER ERROR */}
         {errors.server && (

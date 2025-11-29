@@ -1,6 +1,61 @@
-.error-text {
-  color: red;
-  font-size: 13px;
-  margin-top: 4px;
-  display: block;
+.register-container {
+  max-width: 520px;
+  margin: 40px auto;
+  background: #ffffff;
+  padding: 28px;
+  border-radius: 12px;
+  color: #0f172a;
+  box-shadow: 0 10px 30px rgba(2,6,23,0.12);
 }
+
+.register-container h2 {
+  margin: 0 0 14px 0;
+  font-size: 22px;
+  color: #0b2540;
+}
+
+.register-container form { display:flex; flex-direction:column; gap:10px }
+
+.register-container input[type="text"],
+.register-container input[type="email"],
+.register-container input[type="password"],
+.register-container select {
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(11,37,64,0.08);
+  background: #ffffff;
+  color: #0b2540;
+  outline: none;
+}
+
+.register-container input::placeholder { color: rgba(11,37,64,0.4) }
+
+.register-container button[type="submit"] {
+  margin-top: 6px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(90deg,#42a5f5,#7b61ff);
+  color: white;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.error-text { color: #d9534f; font-size: 13px; margin-top: 4px; display:block }
+
+.govt-id-row { display:flex; gap:10px; align-items:center }
+.govt-upload { display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:10px; background: #f7fbff; cursor:pointer; border:1px dashed rgba(11,37,64,0.06); }
+.govt-upload input { display:none }
+.upload-label { color:#0b2540 }
+.btn-verify { padding:8px 12px; border-radius:8px; border:none; background: #eef6ff; color:#0b2540; cursor:pointer }
+.govt-summary { font-size:13px; color:#0b2540 }
+
+/* Make the 'Already have an account' link clearly visible */
+.register-container p { color: #0b2540; margin-top: 12px }
+.register-container p a { color: #2b6cb0; text-decoration: underline }
+
+/* Responsive */
+@media (max-width: 520px) {
+  .register-container { margin: 18px; padding: 18px }
+}
+

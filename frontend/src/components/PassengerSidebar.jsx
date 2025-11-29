@@ -13,7 +13,7 @@ const PassengerSidebar = () => {
 
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    navigate("/");
     setSidebarOpen(false);
   };
 

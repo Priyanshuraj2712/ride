@@ -5,6 +5,7 @@ import PassengerDashboard from "./pages/passenger/PassengerDashboard";
 import DriverDashboard from "./pages/driver/DriverDashboard";
 
 import BookRide from "./pages/passenger/BookRide";
+import Home from "./pages/Home";
 import MyRides from "./pages/passenger/MyRides";
 import Carpool from "./pages/passenger/Carpool";
 import LiveTracking from "./pages/passenger/LiveTracking";
@@ -25,7 +26,8 @@ const router = createBrowserRouter([
     path: "/",
     element: <Layout />,
     children: [
-      { index: true, element: <Navigate to="/login" replace /> },
+    { index: true, element: <Home /> },
+    { path: "home", element: <Home /> },
       { path: "login", element: <Login /> },
       { path: "register", element: <Register /> },
 
@@ -40,6 +42,14 @@ const router = createBrowserRouter([
 
       {
         path: "passenger/book",
+        element: (
+          <PrivateRoute role="passenger">
+            <BookRide />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "book-ride",
         element: (
           <PrivateRoute role="passenger">
             <BookRide />

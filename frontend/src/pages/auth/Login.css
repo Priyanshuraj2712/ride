@@ -1,0 +1,22 @@
+.login-container {
+  max-width: 420px;
+  margin: 60px auto;
+  padding: 28px;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #0b2540;
+  box-shadow: 0 10px 30px rgba(2,6,23,0.12);
+}
+
+.login-container h2 { margin:0 0 14px 0; color:#0b2540 }
+.login-container form { display:flex; flex-direction:column; gap:10px }
+.login-container input { padding:12px 14px; border-radius:10px; border:1px solid rgba(11,37,64,0.08); background: #fff; color:#0b2540 }
+.login-container button { padding:12px 14px; border-radius:10px; border:none; background: linear-gradient(90deg,#42a5f5,#7b61ff); color:#fff; font-weight:700 }
+
+.login-container a { color:#2b6cb0 }
+
+@media (max-width:480px) { .login-container { margin:20px; padding:18px } .login-container h2{font-size:18px} }
+
+/* Make the 'Don't have an account?' line visible */
+.login-container p { color: #0b2540; margin-top: 12px }
+.login-container p a { color: #2b6cb0; text-decoration: underline }
